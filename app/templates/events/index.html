@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}UniFlow — можливості для студентів{% endblock %}
+{% block content %}
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <span class="hero-badge">
+                <i class="ph ph-graduation-cap"></i> Платформа для студентів України
+            </span>
+            <h1>Знайди свою<br><span class="gradient-text">можливість</span></h1>
+            <p>Сучасна екосистема для пошуку грантів, стажувань та програм обміну. Побудуй кар'єру ще під час навчання.</p>
+        </div>
+
+        <div class="carousel-wrapper">
+            <div class="carousel" id="carousel">
+                <div class="carousel-card active">
+                    <div class="card-icon"><i class="ph ph-globe-hemisphere-west"></i></div>
+                    <h3>Академічна спільнота</h3>
+                    <p>Весь університетський світ в одній вкладці.</p>
+                </div>
+                <div class="carousel-card">
+                    <div class="card-icon"><i class="ph ph-rocket-launch"></i></div>
+                    <h3>Кар'єрний старт</h3>
+                    <p>Твій шлях від теорії до першого серйозного офера.</p>
+                </div>
+                <div class="carousel-card">
+                    <div class="card-icon"><i class="ph ph-faders"></i></div>
+                    <h3>Розумні фільтри</h3>
+                    <p>Шукай лише те, що підходить твоєму профілю та місту.</p>
+                </div>
+            </div>
+            <div class="carousel-dots" id="carouselDots">
+                <span class="dot active" onclick="goToSlide(0)"></span>
+                <span class="dot" onclick="goToSlide(1)"></span>
+                <span class="dot" onclick="goToSlide(2)"></span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="filters-section container">
+    <div class="filters-glass">
+        <form method="GET" action="/" id="filterForm">
+            <div class="search-row">
+                <div class="search-wrap">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" name="search" placeholder="Назва компанії, гранту або технології..." value="{{ search }}" class="search-input" id="searchInput">
+                    {% if search %}
+                        <button type="button" class="search-clear" onclick="clearSearch()">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary">Знайти</button>
+            </div>
+
+            <div class="chips-row">
+                <a href="/" class="chip {% if current_category == 0 %}active{% endif %}">Всі формати</a>
+                {% for category in categories %}
+                    <a href="/?category={{ category.id }}{% if search %}&search={{ search }}{% endif %}"
+                       class="chip {% if current_category == category.id %}active{% endif %}">
+                        {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <div class="dropdowns-row">
+                <select name="format" class="dropdown" onchange="this.form.submit()">
+                    <option value="">Локація та формат</option>
+                    <option value="online">Тільки Онлайн</option>
+                    <option value="offline">Офлайн події</option>
+                </select>
+                <select name="sort" class="dropdown" onchange="this.form.submit()">
+                    <option value="new">Спочатку нові</option>
+                    <option value="deadline">Найближчий дедлайн</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="events-section container">
+    {% if events.items %}
+        <div class="section-header">
+            <h2>Актуальні пропозиції</h2>
+            <span class="events-count">{{ events.total }} знайдено</span>
+        </div>
+
+        <div class="events-grid">
+            {% for event in events.items %}
+            {% set days_left = (event.deadline - now).days if event.deadline else None %}
+            <div class="event-card">
+                <div class="event-card-top">
+                    <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                        {{ event.category.name if event.category else 'Інше' }}
+                    </span>
+
+                    {% if current_user.is_authenticated %}
+                    <form action="/favorites/toggle/{{ event.id }}" method="POST" class="heart-form">
+                        <button type="submit" class="heart-btn {% if event.id in favorite_ids %}active{% endif %}">
+                            {% if event.id in favorite_ids %}
+                                <i class="ph-fill ph-heart"></i>
+                            {% else %}
+                                <i class="ph ph-heart"></i>
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <h3 class="event-title">
+                    <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
+                </h3>
+
+                <p class="event-desc">{{ event.description[:110] }}{% if event.description|length > 110 %}...{% endif %}</p>
+
+                <div class="event-meta">
+                    {% if event.city or event.format == 'online' %}
+                        <span class="meta-item">
+                            <i class="ph ph-map-pin"></i>
+                            {{ event.city if event.format == 'offline' else 'Онлайн' }}
+                        </span>
+                    {% endif %}
+
+                    {% if event.deadline %}
+                        <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
+                            <i class="ph ph-calendar-blank"></i>
+                            {% if days_left is not none and days_left <= 3 %}
+                                Дедлайн: {{ days_left }} дн.
+                            {% else %}
+                                До {{ event.deadline.strftime('%d.%m.%Y') }}
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути деталі</a>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div class="empty-state">
+            <i class="ph ph-folder-open empty-icon"></i>
+            <h3>Пропозицій не знайдено</h3>
+            <p style="color: var(--text-muted); margin-top: 8px;">Спробуйте змінити параметри фільтрації.</p>
+        </div>
+    {% endif %}
+</section>
+
+{% if not current_user.is_authenticated %}
+<section class="cta-section container">
+    <div class="cta-card" style="background: var(--text); border-radius: var(--radius); padding: 64px 40px; text-align: center; color: white;">
+        <i class="ph ph-star" style="font-size: 48px; color: var(--warning); margin-bottom: 24px;"></i>
+        <h2 style="font-family: 'Plus Jakarta Sans'; font-size: 32px; margin-bottom: 16px;">Створіть свій персональний простір</h2>
+        <p style="color: #9CA3AF; margin-bottom: 32px; font-size: 16px;">Авторизуйтесь, щоб зберігати цікаві гранти та отримувати рекомендації на основі ваших інтересів.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn" style="background: white; color: var(--text);">Створити акаунт</a>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
