@@ -13,10 +13,10 @@
 
     <div class="detail-meta">
         {% if event.deadline %}
-            <span>📅 Дедлайн: {{ event.deadline.strftime('%d.%m.%Y') }}</span>
+            <span> Дедлайн: {{ event.deadline.strftime('%d.%m.%Y') }}</span>
         {% endif %}
-        <span>👤 Автор: {{ event.author.username }}</span>
-        <span>📁 {{ event.category.name if event.category else 'Інше' }}</span>
+        <span> Автор: {{ event.author.username }}</span>
+        <span> {{ event.category.name if event.category else 'Інше' }}</span>
     </div>
 
     <div class="detail-body">
@@ -39,7 +39,7 @@
     <div class="detail-actions">
         <form action="{{ url_for('favorites.toggle', event_id=event.id) }}" method="POST" id="fav-form">
             <button type="submit" class="btn {% if is_favorite %}btn-danger{% else %}btn-outline{% endif %}" id="fav-btn">
-                {% if is_favorite %}❤️ У вибраному{% else %}🤍 Додати у вибране{% endif %}
+                {% if is_favorite %} У вибраному{% else %} Додати у вибране{% endif %}
             </button>
         </form>
     </div>

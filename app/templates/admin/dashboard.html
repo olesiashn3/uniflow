@@ -35,10 +35,10 @@
                 <h4>{{ event.title }}</h4>
                 <p>{{ event.description[:200] }}...</p>
                 <div class="admin-meta">
-                    <span>👤 {{ event.author.username }}</span>
-                    <span>📁 {{ event.category.name if event.category else 'Інше' }}</span>
+                    <span> {{ event.author.username }}</span>
+                    <span> {{ event.category.name if event.category else 'Інше' }}</span>
                     {% if event.deadline %}
-                        <span>📅 {{ event.deadline.strftime('%d.%m.%Y') }}</span>
+                        <span> {{ event.deadline.strftime('%d.%m.%Y') }}</span>
                     {% endif %}
                     {% if event.link %}
                         <a href="{{ event.link }}" target="_blank">🔗 Посилання</a>
@@ -46,8 +46,8 @@
                 </div>
             </div>
             <div class="admin-card-actions">
-                <a href="{{ url_for('admin.approve', id=event.id) }}" class="btn btn-success">✅ Схвалити</a>
-                <a href="{{ url_for('admin.reject', id=event.id) }}" class="btn btn-danger">❌ Відхилити</a>
+                <a href="{{ url_for('admin.approve', id=event.id) }}" class="btn btn-success"> Схвалити</a>
+                <a href="{{ url_for('admin.reject', id=event.id) }}" class="btn btn-danger"> Відхилити</a>
                 <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-outline">Переглянути</a>
             </div>
         </div>
@@ -55,7 +55,7 @@
     </div>
 {% else %}
     <div class="empty-state">
-        <p>🎉 Немає подій на перевірці!</p>
+        <p> Немає подій на перевірці!</p>
     </div>
 {% endif %}
 {% endblock %}
