@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Прив'язати юзера — UniFlow{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Прив'язати користувача до організації</h2>
+    <p class="auth-subtitle">Юзер отримає сторінку організації і зможе публікувати від її імені</p>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label>{{ form.username.label.text }}</label>
+            {{ form.username(class="form-control", placeholder="Введіть username") }}
+            {% for error in form.username.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.company_id.label.text }}</label>
+            {{ form.company_id(class="form-control") }}
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline">Скасувати</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

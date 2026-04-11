@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Створити організацію — UniFlow{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Створити організацію</h2>
+    <p class="auth-subtitle">Організація отримає власну сторінку на платформі</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label>{{ form.name.label.text }}</label>
+            {{ form.name(class="form-control", placeholder="Назва організації") }}
+            {% for error in form.name.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.description.label.text }}</label>
+            {{ form.description(class="form-control", rows=4, placeholder="Опис організації...") }}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.website.label.text }}</label>
+            {{ form.website(class="form-control", placeholder="https://...") }}
+            {% for error in form.website.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.logo.label.text }}</label>
+            {{ form.logo(class="form-control") }}
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline">Скасувати</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,10 +1,9 @@
 {% extends 'base.html' %}
-
 {% block title %}Панель модератора — UniFlow{% endblock %}
-
 {% block content %}
 <div class="page-header">
     <h2>Панель модератора</h2>
+    <a href="{{ url_for('admin.create_company') }}" class="btn btn-primary">+ Створити організацію</a>
 </div>
 
 <div class="stats-grid">
@@ -26,6 +25,49 @@
     </div>
 </div>
 
+<!-- Організації -->
+{% if companies %}
+<div style="margin: 40px 0 20px; display: flex; justify-content: space-between; align-items: center;">
+    <h3 style="font-family: 'Plus Jakarta Sans'; font-weight: 700; font-size: 20px;">Організації</h3>
+    <a href="{{ url_for('admin.assign_company') }}" class="btn btn-outline">Прив'язати юзера</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px;">
+    {% for company in companies %}
+    <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; align-items: center; gap: 20px;">
+        <div style="width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary); font-size: 18px; flex-shrink: 0;">
+            {% if company.logo_file %}
+                <img src="{{ url_for('static', filename='uploads/' + company.logo_file) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+            {% else %}
+                {{ company.name[0]|upper }}
+            {% endif %}
+        </div>
+        <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 700; font-size: 15px;">{{ company.name }}</span>
+                {% if company.is_verified %}
+                    <i class="ph-fill ph-seal-check" style="color: #1d9bf0;"></i>
+                {% endif %}
+            </div>
+            <span style="font-size: 13px; color: var(--text-muted);">{{ company.subscribers.count() }} підписників · {{ company.events.count() }} подій</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ url_for('profile.company_profile', id=company.id) }}" class="btn btn-card" style="padding: 8px 14px; font-size: 13px;">
+                <i class="ph ph-eye"></i> Переглянути
+            </a>
+            <a href="{{ url_for('admin.verify_company', id=company.id) }}" class="btn {% if company.is_verified %}btn-outline{% else %}btn-primary{% endif %}" style="padding: 8px 14px; font-size: 13px;">
+                {% if company.is_verified %}
+                    <i class="ph ph-seal"></i> Зняти верифікацію
+                {% else %}
+                    <i class="ph ph-seal-check"></i> Верифікувати
+                {% endif %}
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Події на перевірці -->
 {% if pending %}
     <h3 style="margin: 32px 0 16px; font-family: 'Plus Jakarta Sans'; font-weight: 700;">Потребують вашої уваги</h3>
     <div class="admin-list">
@@ -58,9 +100,8 @@
     </div>
 {% else %}
     <div class="empty-state">
-        <i class="ph ph-check-circle empty-icon" style="color: var(--success);"></i>
         <h3>Усі публікації перевірені</h3>
-        <p>Наразі немає нових подій, що потребують модерації.</p>
+        <p>Наразі немає нових подій що потребують модерації.</p>
     </div>
 {% endif %}
 {% endblock %}

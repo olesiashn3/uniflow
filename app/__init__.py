@@ -21,11 +21,10 @@ def create_app():
     from app.routes.favorites import favorites
     from app.routes.profile import profile
 
-
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(events, url_prefix='/')
     app.register_blueprint(admin, url_prefix='/admin')
     app.register_blueprint(favorites, url_prefix='/favorites')
-    app.register_blueprint(profile, url_prefix='/profile')
+    app.register_blueprint(profile, url_prefix='/')
 
     return app

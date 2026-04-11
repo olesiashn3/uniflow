@@ -75,6 +75,22 @@
             {% endfor %}
         </div>
 
+        {% if current_user.company %}
+        <div style="background: var(--glass-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px dashed var(--primary); margin-bottom: 24px;">
+            <label style="font-weight: 700; color: var(--primary); margin-bottom: 8px; display: block;">
+                <i class="ph-fill ph-buildings"></i> {{ form.company_id.label.text }}
+            </label>
+            {{ form.company_id(class="form-control dropdown", style="background: white;") }}
+            <small style="color: var(--text-muted); display: block; margin-top: 6px;">
+                Ви є представником організації. Оберіть, від чийого імені опублікувати цю подію.
+            </small>
+        </div>
+        {% else %}
+            <div style="display: none;">
+                {{ form.company_id(class="form-control") }}
+            </div>
+        {% endif %}
+
         {{ form.submit(class="btn btn-primary btn-full") }}
     </form>
 </div>

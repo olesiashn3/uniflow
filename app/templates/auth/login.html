@@ -1,36 +1,160 @@
 {% extends 'base.html' %}
-
 {% block title %}Вхід — UniFlow{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Вхід</h2>
-        <p class="auth-subtitle">Раді бачити тебе знову!</p>
+<style>
+    /* Легкий патерн в крапочку для фону */
+    .auth-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 100px);
+        padding: 40px 20px;
+        background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
 
-        <form method="POST">
+    /* Чиста, повітряна біла картка — ЗРОБИЛИ ШИРШОЮ (520px) */
+    .auth-card-clean {
+        background: #ffffff;
+        width: 100%;
+        max-width: 520px;
+        padding: 48px 40px;
+        border-radius: 24px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.04), 0 2px 10px rgba(0,0,0,0.02);
+        border: 1px solid rgba(0,0,0,0.03);
+        text-align: center;
+    }
+
+    /* Бейджик */
+    .auth-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0f4ff;
+        color: var(--primary);
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    /* Градієнт заголовка */
+    .auth-title-gradient {
+        background: linear-gradient(90deg, var(--primary), #d946ef);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* СТИЛІ ДЛЯ НОВОГО БЛОКУ МОТИВАЦІЇ */
+    .auth-motivation {
+        background: #f8fafc;
+        border-left: 3px solid var(--primary);
+        padding: 16px 20px;
+        border-radius: 0 12px 12px 0;
+        text-align: left;
+        margin: 28px 0;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .auth-motivation-icon {
+        color: var(--primary);
+        font-size: 20px;
+        margin-top: 2px;
+    }
+
+    .auth-form-clean {
+        text-align: left;
+    }
+
+    .auth-input-clean {
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #fafafa;
+        width: 100%;
+        font-size: 15px;
+        transition: all 0.2s ease;
+    }
+
+    .auth-input-clean:focus {
+        background: #ffffff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+
+    /* Кнопка */
+    .auth-btn-dark {
+        background: #0f172a;
+        color: white;
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .auth-btn-dark:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<div class="auth-page">
+    <div class="auth-card-clean">
+
+        <div class="auth-badge">
+            <i class="ph-fill ph-hand-waving"></i> З поверненням
+        </div>
+
+        <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--text);">
+            Увійти в <span class="auth-title-gradient">UniFlow</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 15px;">
+            Продовж свій шлях до нових можливостей.
+        </p>
+
+        <div class="auth-motivation">
+            <i class="ph-fill ph-shooting-star auth-motivation-icon"></i>
+            <div style="font-size: 14px; color: var(--text); line-height: 1.5;">
+                <strong style="display: block; margin-bottom: 4px;">Твій наступний крок</strong>
+                Кожен великий проєкт починається з рішення спробувати. Знаходь стажування, які драйвлять, та будуй кар'єру ще під час навчання.
+            </div>
+        </div>
+
+        <form method="POST" class="auth-form-clean">
             {{ form.hidden_tag() }}
 
-            <div class="form-group">
-                {{ form.email.label }}
-                {{ form.email(class="form-control") }}
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; color: var(--text);">{{ form.email.label.text }}</label>
+                {{ form.email(class="auth-input-clean", placeholder="name@example.com") }}
                 {% for error in form.email.errors %}
-                    <span class="error">{{ error }}</span>
+                    <span class="error" style="color: var(--danger); font-size: 13px; margin-top: 4px; display: block;">{{ error }}</span>
                 {% endfor %}
             </div>
 
-            <div class="form-group">
-                {{ form.password.label }}
-                {{ form.password(class="form-control") }}
+            <div class="form-group" style="margin-bottom: 32px;">
+                <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; color: var(--text);">{{ form.password.label.text }}</label>
+                {{ form.password(class="auth-input-clean", placeholder="••••••••") }}
                 {% for error in form.password.errors %}
-                    <span class="error">{{ error }}</span>
+                    <span class="error" style="color: var(--danger); font-size: 13px; margin-top: 4px; display: block;">{{ error }}</span>
                 {% endfor %}
             </div>
 
-            {{ form.submit(class="btn btn-primary btn-full") }}
+            {{ form.submit(class="auth-btn-dark") }}
         </form>
 
-        <p class="auth-footer">Ще немає акаунту? <a href="{{ url_for('auth.register') }}">Зареєструватись</a></p>
+        <div style="margin-top: 24px; font-size: 14px; color: var(--text-muted);">
+            Ще немає акаунта?
+            <a href="{{ url_for('auth.register') }}" style="color: var(--primary); font-weight: 700; text-decoration: none;">Зареєструватись</a>
+        </div>
+
     </div>
 </div>
 {% endblock %}

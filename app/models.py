@@ -9,11 +9,10 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# ДОДАНО: Проміжна таблиця для системи підписок (Many-to-Many)
 subscriptions = db.Table('subscriptions',
-                         db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-                         db.Column('company_id', db.Integer, db.ForeignKey('companies.id'), primary_key=True)
-                         )
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('company_id', db.Integer, db.ForeignKey('companies.id'), primary_key=True)
+)
 
 
 class User(UserMixin, db.Model):
@@ -25,13 +24,14 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(10), default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
 
+    company = db.relationship('Company', foreign_keys=[company_id], backref='members')
     events = db.relationship('Event', backref='author', lazy='dynamic')
     favorites = db.relationship('Favorite', backref='user', lazy='dynamic')
-
-    # ДОДАНО: Зв'язок з питаннями та підписками
     questions = db.relationship('Question', backref='author', lazy='dynamic')
     subscribed_companies = db.relationship('Company', secondary=subscriptions,
+                                           foreign_keys=[subscriptions.c.user_id, subscriptions.c.company_id],
                                            backref=db.backref('subscribers', lazy='dynamic'))
 
     def set_password(self, password):
@@ -40,11 +40,13 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def is_subscribed(self, company):
+        return company in self.subscribed_companies
+
     def __repr__(self):
         return f'<User {self.username}>'
 
 
-# ДОДАНО: Нова сутність - Компанія (Офіційний Хаб)
 class Company(db.Model):
     __tablename__ = 'companies'
 
@@ -52,11 +54,10 @@ class Company(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
     website = db.Column(db.String(255), nullable=True)
-    logo_file = db.Column(db.String(255), nullable=True, default='default_company.png')
-    is_verified = db.Column(db.Boolean, default=False)  # Та сама синя галочка!
+    logo_file = db.Column(db.String(255), nullable=True)
+    is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Зв'язок з подіями: Одна компанія може мати багато подій
     events = db.relationship('Event', backref='company', lazy='dynamic')
 
     def __repr__(self):
@@ -92,14 +93,11 @@ class Event(db.Model):
 
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
-
-    # ДОДАНО: Прив'язка події до компанії (може бути порожньою, якщо це просто подія від юзера)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
 
     favorites = db.relationship('Favorite', backref='event', lazy='dynamic')
-
-    # ДОДАНО: Зв'язок з питаннями під цією подією
-    questions = db.relationship('Question', backref='event', lazy='dynamic', cascade="all, delete-orphan")
+    questions = db.relationship('Question', backref='event', lazy='dynamic',
+                                cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Event {self.title}>'
@@ -117,18 +115,17 @@ class Favorite(db.Model):
         return f'<Favorite user={self.user_id} event={self.event_id}>'
 
 
-# ДОДАНО: Таблиця для Q&A (Запитання-Відповіді)
 class Question(db.Model):
     __tablename__ = 'questions'
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
-    answer = db.Column(db.Text, nullable=True)  # Відповідь компанії (спочатку порожня)
+    answer = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     answered_at = db.Column(db.DateTime, nullable=True)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Хто запитав
-    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)  # Під якою подією
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
 
     def __repr__(self):
         return f'<Question {self.id} on Event {self.event_id}>'

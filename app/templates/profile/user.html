@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.username }} — UniFlow{% endblock %}
+{% block content %}
+
+<div style="max-width: 900px; margin: 48px auto;">
+
+    <div style="background: var(--bg2); border-radius: var(--radius); padding: 40px; border: 1px solid var(--border); margin-bottom: 32px; display: flex; align-items: center; gap: 32px;">
+        <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: #fff; flex-shrink: 0;">
+            {{ user.username[0]|upper }}
+        </div>
+        <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">
+                    {{ user.username }}
+                </h1>
+                {% if user.company and user.company.is_verified %}
+                    <span title="Верифікована організація" style="color: #1d9bf0; font-size: 22px;">
+                        <i class="ph-fill ph-seal-check"></i>
+                    </span>
+                {% endif %}
+            </div>
+            {% if user.company %}
+                <p style="color: var(--primary); font-weight: 600; font-size: 15px; margin-bottom: 8px;">
+                    {{ user.company.name }}
+                </p>
+            {% endif %}
+            <p style="color: var(--text-muted); font-size: 14px;">
+                На платформі з {{ user.created_at.strftime('%B %Y') }}
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 36px; font-weight: 800; color: var(--primary);">{{ events|length }}</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">публікацій</div>
+        </div>
+    </div>
+
+    {% if user.company %}
+    <div style="background: var(--bg2); border-radius: var(--radius); padding: 28px; border: 1px solid var(--border); margin-bottom: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+            <div>
+                <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 8px;">
+                    {{ user.company.name }}
+                    {% if user.company.is_verified %}
+                        <i class="ph-fill ph-seal-check" style="color: #1d9bf0;"></i>
+                    {% endif %}
+                </h2>
+                {% if user.company.description %}
+                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">{{ user.company.description }}</p>
+                {% endif %}
+                {% if user.company.website %}
+                    <a href="{{ user.company.website }}" target="_blank" style="color: var(--primary); font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;">
+                        <i class="ph ph-globe"></i> {{ user.company.website }}
+                    </a>
+                {% endif %}
+            </div>
+            {% if current_user.is_authenticated and current_user.id != user.id %}
+            <form action="{{ url_for('profile.toggle_subscription', id=user.company.id) }}" method="POST" style="flex-shrink: 0;">
+                <button type="submit" class="btn {% if current_user.is_subscribed(user.company) %}btn-outline{% else %}btn-primary{% endif %}">
+                    {% if current_user.is_subscribed(user.company) %}
+                        Відписатись
+                    {% else %}
+                        Підписатись
+                    {% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 20px;">
+        Публікації
+    </h2>
+
+    {% if events %}
+        <div class="events-grid">
+            {% for event in events %}
+            {% set days_left = (event.deadline - now).days if event.deadline else None %}
+            <div class="event-card">
+                <div class="event-card-top">
+                    <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                        {{ event.category.name if event.category else 'Інше' }}
+                    </span>
+                </div>
+                <h3 class="event-title">
+                    <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
+                </h3>
+                <p class="event-desc">{{ event.description[:120] }}...</p>
+                <div class="event-meta">
+                    {% if event.deadline %}
+                        <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
+                            <i class="ph ph-calendar-blank"></i>
+                            {{ event.deadline.strftime('%d.%m.%Y') }}
+                        </span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-cat" style="font-size: 48px;">📭</div>
+            <h3>Поки немає публікацій</h3>
+            <p>Цей користувач ще не додав жодної події</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -4,9 +4,9 @@ from PIL import Image
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Event, Category, Favorite, Question  # ДОДАНО Question
+from app.models import Event, Category, Favorite, Question
 from app.forms import EventForm
-from datetime import date, timedelta, datetime  # ДОДАНО datetime
+from datetime import date, timedelta, datetime
 
 events = Blueprint('events', __name__)
 
@@ -92,7 +92,6 @@ def detail(id):
             event_id=event.id
         ).first() is not None
 
-    # ДОДАНО: Витягуємо питання для події
     questions = event.questions.order_by(Question.created_at.desc()).all()
 
     return render_template('events/detail.html', event=event, is_favorite=is_favorite, questions=questions)
@@ -104,10 +103,18 @@ def add():
     form = EventForm()
     form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
 
+    # ДОДАНО: Логіка вибору автора (Особисто чи від компанії)
+    form.company_id.choices = [(0, f"Особисто ({current_user.username})")]
+    if current_user.company:
+        form.company_id.choices.append((current_user.company.id, f"Від імені: {current_user.company.name}"))
+
     if form.validate_on_submit():
         picture_file = None
         if form.image.data:
             picture_file = save_picture(form.image.data)
+
+        # ДОДАНО: Визначаємо вибрану компанію
+        selected_company = form.company_id.data if form.company_id.data != 0 else None
 
         event = Event(
             title=form.title.data,
@@ -119,6 +126,7 @@ def add():
             city=form.city.data or None,
             image_file=picture_file,
             category_id=form.category_id.data,
+            company_id=selected_company,  # ДОДАЛИ СЮДИ!
             author_id=current_user.id,
             status='pending'
         )
@@ -138,7 +146,6 @@ def my_events():
     return render_template('events/my_events.html', events=user_events)
 
 
-# ДОДАНО: Маршрут для створення питання
 @events.route('/event/<int:id>/ask', methods=['POST'])
 @login_required
 def ask_question(id):
@@ -156,14 +163,12 @@ def ask_question(id):
     return redirect(url_for('events.detail', id=id))
 
 
-# ДОДАНО: Маршрут для ВІДПОВІДІ на питання (Тільки для автора)
 @events.route('/question/<int:question_id>/answer', methods=['POST'])
 @login_required
 def answer_question(question_id):
     question = Question.query.get_or_404(question_id)
     event = question.event
 
-    # Перевірка: чи поточний юзер є автором події
     if current_user.id != event.author_id and current_user.role != 'admin':
         flash('У вас немає прав для відповіді на це запитання.', 'danger')
         return redirect(url_for('events.detail', id=event.id))

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed  # ДОДАНО: Для роботи з файлами
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DateField
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DateField, HiddenField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional, URL
 from app.models import User
 
@@ -57,24 +57,57 @@ class EventForm(FlaskForm):
     ])
     requirements = TextAreaField('Вимоги', validators=[Optional()])
     deadline = DateField('Дедлайн', validators=[Optional()])
-    link = StringField('Посилання на офіційний сайт', validators=[
+
+    # Залишаємо URL, але додаємо підказку в placeholder (в HTML)
+    link = StringField('Посилання (Реєстрація / Деталі)', validators=[
         Optional(),
-        URL(message='Введіть коректне посилання')
+        URL(message='Введіть коректне посилання (почніть з http:// або https://)')
     ])
+
     format = SelectField('Формат', choices=[
         ('', 'Не вказано'),
         ('online', 'Онлайн'),
         ('offline', 'Офлайн')
     ], validators=[Optional()])
+
     city = StringField('Місто', validators=[
         Optional(),
         Length(max=100)
     ])
 
-    # ДОДАНО: Поле для завантаження банера
     image = FileField('Обкладинка події (банер)', validators=[
         FileAllowed(['jpg', 'png', 'jpeg'], 'Дозволені лише зображення (JPG, PNG)')
     ])
 
     category_id = SelectField('Категорія', coerce=int)
-    submit = SubmitField('Додати подію')
+
+    # ДОДАНО: Приховане поле або список для вибору компанії
+    # Якщо юзер має компанію, ми заповнимо цей список у маршруті
+    company_id = SelectField('Публікувати від імені', coerce=int, validators=[Optional()])
+
+    submit = SubmitField('Опублікувати')
+
+
+class CompanyForm(FlaskForm):
+    name = StringField('Назва організації', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=2, max=100, message='Від 2 до 100 символів')
+    ])
+    description = TextAreaField('Опис організації', validators=[Optional()])
+    website = StringField('Вебсайт', validators=[
+        Optional(),
+        URL(message='Введіть коректне посилання')
+    ])
+    logo = FileField('Логотип', validators=[
+        Optional(),
+        FileAllowed(['jpg', 'jpeg', 'png', 'webp'], 'Тільки зображення!')
+    ])
+    submit = SubmitField('Створити організацію')
+
+
+class AssignCompanyForm(FlaskForm):
+    username = StringField('Імʼя користувача', validators=[
+        DataRequired(message='Це поле обовʼязкове')
+    ])
+    company_id = SelectField('Організація', coerce=int)
+    submit = SubmitField('Прив\'язати')
