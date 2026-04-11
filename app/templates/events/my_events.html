@@ -1,37 +1,62 @@
 {% extends 'base.html' %}
-
 {% block title %}Мої події — UniFlow{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h2>Мої події</h2>
-    <a href="{{ url_for('events.add') }}" class="btn btn-primary">+ Додати нову</a>
-</div>
+<div style="max-width: 1000px; margin: 48px auto; padding: 0 20px;">
 
-{% if events %}
-    <div class="events-grid">
-        {% for event in events %}
-        <div class="event-card">
-            <div class="event-card-header">
-                <span class="category-badge">{{ event.category.name if event.category else 'Інше' }}</span>
-                <span class="status-badge status-{{ event.status }}">
-                    {% if event.status == 'pending' %} На перевірці
-                    {% elif event.status == 'approved' %} Опубліковано
-                    {% else %} Відхилено{% endif %}
-                </span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+        <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; margin: 0; color: var(--text);">
+            Мої події
+        </h1>
+
+        {% if events %}
+            <a href="{{ url_for('events.add') }}" class="btn btn-primary" style="padding: 10px 20px; border-radius: 10px; font-weight: 600;">
+                + Додати нову
+            </a>
+        {% endif %}
+    </div>
+
+    {% if events %}
+        <div class="events-grid">
+            {% for event in events %}
+            <div class="event-card">
+                <div class="event-card-top" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                        {{ event.category.name if event.category else 'Інше' }}
+                    </span>
+                    <span style="font-size: 12px; font-weight: 700; color: {% if event.status == 'approved' %}#166534{% elif event.status == 'pending' %}#92400e{% else %}#991b1b{% endif %};">
+                        {% if event.status == 'approved' %}Активна{% elif event.status == 'pending' %}На перевірці{% else %}Відхилено{% endif %}
+                    </span>
+                </div>
+                <h3 class="event-title">
+                    <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
+                </h3>
+                <p class="event-desc">{{ event.description[:120] }}...</p>
+                <div class="event-meta">
+                    {% if event.deadline %}
+                        <span class="meta-item"><i class="ph ph-calendar-blank"></i> {{ event.deadline.strftime('%d.%m.%Y') }}</span>
+                    {% endif %}
+                    {% if event.format %}
+                        <span class="meta-item"><i class="ph ph-desktop"></i> {{ 'Онлайн' if event.format == 'online' else 'Офлайн' }}</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card" style="margin-top: 16px;">Переглянути</a>
             </div>
-            <h3 class="event-title">{{ event.title }}</h3>
-            <p class="event-desc">{{ event.description[:120] }}...</p>
-            <div class="event-card-footer">
-                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-outline">Переглянути</a>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <div class="empty-state">
-        <p> Ти ще не додавала жодної події</p>
-        <a href="{{ url_for('events.add') }}" class="btn btn-primary">Додати першу подію</a>
-    </div>
-{% endif %}
+    {% else %}
+        <div style="border: 1px solid var(--border); background: var(--bg2); padding: 40px; border-radius: 16px; max-width: 600px; margin: 60px auto; text-align: center;">
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text);">
+                Список подій порожній
+            </h3>
+            <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+                Ти ще не додавала жодної публікації. Усі твої події та статуси їх модерації зберігатимуться тут.
+            </p>
+            <a href="{{ url_for('events.add') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600;">
+                <i class="ph ph-plus"></i> Створити подію
+            </a>
+        </div>
+    {% endif %}
+
+</div>
 {% endblock %}

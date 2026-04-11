@@ -1,107 +1,229 @@
 {% extends 'base.html' %}
 {% block title %}Панель модератора — UniFlow{% endblock %}
+
 {% block content %}
-<div class="page-header">
-    <h2>Панель модератора</h2>
-    <a href="{{ url_for('admin.create_company') }}" class="btn btn-primary">+ Створити організацію</a>
-</div>
+<style>
+    .admin-wrapper {
+        max-width: 900px;
+        margin: 48px auto;
+    }
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <span class="stat-number" style="color: var(--warning);">{{ pending|length }}</span>
-        <span class="stat-label">Очікують перевірки</span>
-    </div>
-    <div class="stat-card">
-        <span class="stat-number" style="color: var(--success);">{{ approved_count }}</span>
-        <span class="stat-label">Активних публікацій</span>
-    </div>
-    <div class="stat-card">
-        <span class="stat-number" style="color: var(--danger);">{{ rejected_count }}</span>
-        <span class="stat-label">Відхилено</span>
-    </div>
-    <div class="stat-card">
-        <span class="stat-number" style="color: var(--info);">{{ users_count }}</span>
-        <span class="stat-label">Студентів у системі</span>
-    </div>
-</div>
+    /* Лаконічний хедер */
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 40px;
+    }
 
-<!-- Організації -->
-{% if companies %}
-<div style="margin: 40px 0 20px; display: flex; justify-content: space-between; align-items: center;">
-    <h3 style="font-family: 'Plus Jakarta Sans'; font-weight: 700; font-size: 20px;">Організації</h3>
-    <a href="{{ url_for('admin.assign_company') }}" class="btn btn-outline">Прив'язати юзера</a>
-</div>
-<div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px;">
-    {% for company in companies %}
-    <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; align-items: center; gap: 20px;">
-        <div style="width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary); font-size: 18px; flex-shrink: 0;">
-            {% if company.logo_file %}
-                <img src="{{ url_for('static', filename='uploads/' + company.logo_file) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
-            {% else %}
-                {{ company.name[0]|upper }}
-            {% endif %}
+    /* Бейджик як на сторінках входу */
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0f4ff;
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    /* Чисті картки статистики без кольорових цифр */
+    .admin-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 48px;
+    }
+
+    .admin-stat-card {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: left;
+    }
+
+    .admin-stat-num {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text); /* Чорний текст замість кольорового */
+        line-height: 1;
+        margin-bottom: 6px;
+    }
+
+    .admin-stat-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Списки (події, організації) */
+    .admin-list-card {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: border-color 0.2s;
+    }
+
+    .admin-list-card:hover {
+        border-color: #d1d5db;
+    }
+
+    /* Лаконічні кнопки */
+    .btn-admin {
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+
+    .btn-admin-dark {
+        background: #0f172a;
+        color: #ffffff;
+    }
+    .btn-admin-dark:hover { opacity: 0.9; }
+
+    .btn-admin-outline {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--text);
+    }
+    .btn-admin-outline:hover { background: var(--bg2); }
+
+    /* Заголовки секцій */
+    .section-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        margin-top: 48px;
+    }
+</style>
+
+<div class="admin-wrapper">
+
+    <div class="admin-header">
+        <div>
+            <div class="admin-badge"><i class="ph-fill ph-shield-check"></i> Модерація</div>
+            <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; margin: 0;">Панель керування</h1>
         </div>
-        <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; font-size: 15px;">{{ company.name }}</span>
-                {% if company.is_verified %}
-                    <i class="ph-fill ph-seal-check" style="color: #1d9bf0;"></i>
-                {% endif %}
-            </div>
-            <span style="font-size: 13px; color: var(--text-muted);">{{ company.subscribers.count() }} підписників · {{ company.events.count() }} подій</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <a href="{{ url_for('profile.company_profile', id=company.id) }}" class="btn btn-card" style="padding: 8px 14px; font-size: 13px;">
-                <i class="ph ph-eye"></i> Переглянути
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('admin.assign_company') }}" class="btn-admin btn-admin-outline">
+                Прив'язати юзера
             </a>
-            <a href="{{ url_for('admin.verify_company', id=company.id) }}" class="btn {% if company.is_verified %}btn-outline{% else %}btn-primary{% endif %}" style="padding: 8px 14px; font-size: 13px;">
-                {% if company.is_verified %}
-                    <i class="ph ph-seal"></i> Зняти верифікацію
-                {% else %}
-                    <i class="ph ph-seal-check"></i> Верифікувати
-                {% endif %}
+            <a href="{{ url_for('admin.create_company') }}" class="btn-admin btn-admin-dark">
+                + Нова організація
             </a>
         </div>
     </div>
-    {% endfor %}
-</div>
-{% endif %}
 
-<!-- Події на перевірці -->
-{% if pending %}
-    <h3 style="margin: 32px 0 16px; font-family: 'Plus Jakarta Sans'; font-weight: 700;">Потребують вашої уваги</h3>
-    <div class="admin-list">
-        {% for event in pending %}
-        <div class="admin-card">
-            <div class="admin-card-info">
-                <h4>{{ event.title }}</h4>
-                <p>{{ event.description[:180] }}...</p>
-                <div class="admin-meta">
-                    <span><i class="ph ph-user"></i> {{ event.author.username }}</span>
-                    <span><i class="ph ph-tag"></i> {{ event.category.name if event.category else 'Інше' }}</span>
-                    {% if event.deadline %}
-                        <span><i class="ph ph-clock"></i> {{ event.deadline.strftime('%d.%m.%Y') }}</span>
-                    {% endif %}
+    <div class="admin-stats">
+        <div class="admin-stat-card">
+            <div class="admin-stat-num">{{ pending|length }}</div>
+            <div class="admin-stat-desc">Очікують перевірки</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-num">{{ approved_count }}</div>
+            <div class="admin-stat-desc">Активних публікацій</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-num">{{ rejected_count }}</div>
+            <div class="admin-stat-desc">Відхилено</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-num">{{ users_count }}</div>
+            <div class="admin-stat-desc">Студентів у системі</div>
+        </div>
+    </div>
+
+    {% if pending %}
+        <h2 class="section-title">Потребують уваги</h2>
+        <div>
+            {% for event in pending %}
+            <div class="admin-list-card" style="align-items: flex-start;">
+                <div style="flex: 1; padding-right: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">{{ event.title }}</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">{{ event.description[:120] }}...</p>
+                    <div style="font-size: 13px; color: var(--text-muted); display: flex; gap: 16px;">
+                        <span><i class="ph ph-user"></i> {{ event.author.username }}</span>
+                        <span><i class="ph ph-tag"></i> {{ event.category.name if event.category else 'Інше' }}</span>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; min-width: 140px;">
+                    <a href="{{ url_for('admin.approve', id=event.id) }}" class="btn-admin btn-admin-dark" style="justify-content: center;">
+                        Схвалити
+                    </a>
+                    <a href="{{ url_for('admin.reject', id=event.id) }}" class="btn-admin btn-admin-outline" style="justify-content: center;">
+                        Відхилити
+                    </a>
+                    <a href="{{ url_for('events.detail', id=event.id) }}" target="_blank" class="btn-admin btn-admin-outline" style="justify-content: center; border: none; background: transparent; padding-top: 4px;">
+                        <span style="text-decoration: underline; color: var(--text-muted);">Переглянути подію</span>
+                    </a>
                 </div>
             </div>
-            <div class="admin-card-actions">
-                <a href="{{ url_for('admin.approve', id=event.id) }}" class="btn btn-success" style="width: 100%; justify-content: center;">
-                    <i class="ph ph-check"></i> Схвалити
-                </a>
-                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">
-                    <i class="ph ph-eye"></i> Переглянути
-                </a>
-                <a href="{{ url_for('admin.reject', id=event.id) }}" class="btn btn-outline" style="width: 100%; justify-content: center; color: var(--danger); border-color: var(--danger);">
-                    <i class="ph ph-x"></i> Відхилити
-                </a>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <div class="empty-state">
-        <h3>Усі публікації перевірені</h3>
-        <p>Наразі немає нових подій що потребують модерації.</p>
-    </div>
-{% endif %}
+    {% endif %}
+
+    {% if companies %}
+        <h2 class="section-title">Організації</h2>
+        <div>
+            {% for company in companies %}
+            <div class="admin-list-card">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 44px; height: 44px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text); overflow: hidden;">
+                        {% if company.logo_file %}
+                            <img src="{{ url_for('static', filename='uploads/' + company.logo_file) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            {{ company.name[0]|upper }}
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                            <span style="font-weight: 600; font-size: 15px;">{{ company.name }}</span>
+                            {% if company.is_verified %}
+                                <i class="ph-fill ph-seal-check" style="color: var(--primary); font-size: 16px;"></i>
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            {{ company.events.count() }} подій · {{ company.subscribers.count() }} підписників
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <a href="{{ url_for('admin.verify_company', id=company.id) }}" class="btn-admin btn-admin-outline">
+                        {% if company.is_verified %}
+                            Зняти галочку
+                        {% else %}
+                            Верифікувати
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('profile.company_profile', id=company.id) }}" target="_blank" class="btn-admin btn-admin-outline" style="border: none; background: transparent;">
+                        Профіль <i class="ph ph-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
 {% endblock %}
