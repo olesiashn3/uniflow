@@ -1,61 +1,66 @@
 {% extends 'base.html' %}
 
-{% block title %}Адмін панель — UniFlow{% endblock %}
+{% block title %}Панель модератора — UniFlow{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h2>Адмін панель</h2>
+    <h2>Панель модератора</h2>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card">
-        <span class="stat-number">{{ pending|length }}</span>
-        <span class="stat-label">На перевірці</span>
+        <span class="stat-number" style="color: var(--warning);">{{ pending|length }}</span>
+        <span class="stat-label">Очікують перевірки</span>
     </div>
     <div class="stat-card">
-        <span class="stat-number">{{ approved_count }}</span>
-        <span class="stat-label">Опубліковано</span>
+        <span class="stat-number" style="color: var(--success);">{{ approved_count }}</span>
+        <span class="stat-label">Активних публікацій</span>
     </div>
     <div class="stat-card">
-        <span class="stat-number">{{ rejected_count }}</span>
+        <span class="stat-number" style="color: var(--danger);">{{ rejected_count }}</span>
         <span class="stat-label">Відхилено</span>
     </div>
     <div class="stat-card">
-        <span class="stat-number">{{ users_count }}</span>
-        <span class="stat-label">Користувачів</span>
+        <span class="stat-number" style="color: var(--info);">{{ users_count }}</span>
+        <span class="stat-label">Студентів у системі</span>
     </div>
 </div>
 
 {% if pending %}
-    <h3 style="margin: 32px 0 16px">Події на перевірці</h3>
+    <h3 style="margin: 32px 0 16px; font-family: 'Plus Jakarta Sans'; font-weight: 700;">Потребують вашої уваги</h3>
     <div class="admin-list">
         {% for event in pending %}
         <div class="admin-card">
             <div class="admin-card-info">
                 <h4>{{ event.title }}</h4>
-                <p>{{ event.description[:200] }}...</p>
+                <p>{{ event.description[:180] }}...</p>
                 <div class="admin-meta">
-                    <span> {{ event.author.username }}</span>
-                    <span> {{ event.category.name if event.category else 'Інше' }}</span>
+                    <span><i class="ph ph-user"></i> {{ event.author.username }}</span>
+                    <span><i class="ph ph-tag"></i> {{ event.category.name if event.category else 'Інше' }}</span>
                     {% if event.deadline %}
-                        <span> {{ event.deadline.strftime('%d.%m.%Y') }}</span>
-                    {% endif %}
-                    {% if event.link %}
-                        <a href="{{ event.link }}" target="_blank">🔗 Посилання</a>
+                        <span><i class="ph ph-clock"></i> {{ event.deadline.strftime('%d.%m.%Y') }}</span>
                     {% endif %}
                 </div>
             </div>
             <div class="admin-card-actions">
-                <a href="{{ url_for('admin.approve', id=event.id) }}" class="btn btn-success"> Схвалити</a>
-                <a href="{{ url_for('admin.reject', id=event.id) }}" class="btn btn-danger"> Відхилити</a>
-                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-outline">Переглянути</a>
+                <a href="{{ url_for('admin.approve', id=event.id) }}" class="btn btn-success" style="width: 100%; justify-content: center;">
+                    <i class="ph ph-check"></i> Схвалити
+                </a>
+                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">
+                    <i class="ph ph-eye"></i> Переглянути
+                </a>
+                <a href="{{ url_for('admin.reject', id=event.id) }}" class="btn btn-outline" style="width: 100%; justify-content: center; color: var(--danger); border-color: var(--danger);">
+                    <i class="ph ph-x"></i> Відхилити
+                </a>
             </div>
         </div>
         {% endfor %}
     </div>
 {% else %}
     <div class="empty-state">
-        <p> Немає подій на перевірці!</p>
+        <i class="ph ph-check-circle empty-icon" style="color: var(--success);"></i>
+        <h3>Усі публікації перевірені</h3>
+        <p>Наразі немає нових подій, що потребують модерації.</p>
     </div>
 {% endif %}
 {% endblock %}

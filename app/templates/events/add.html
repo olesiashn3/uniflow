@@ -4,45 +4,60 @@
 
 {% block content %}
 <div class="form-container">
-    <h2>Додати подію</h2>
-    <p class="auth-subtitle">Подія буде опублікована після перевірки адміністратором</p>
+    <h2>Додати можливість</h2>
+    <p class="auth-subtitle">Ваша публікація з'явиться у стрічці після перевірки модератором</p>
 
     <form method="POST">
         {{ form.hidden_tag() }}
 
         <div class="form-group">
-            {{ form.title.label }}
-            {{ form.title(class="form-control") }}
+            <label>{{ form.title.label.text }}</label>
+            {{ form.title(class="form-control", placeholder="Напр.: Стажування в Google") }}
             {% for error in form.title.errors %}
                 <span class="error">{{ error }}</span>
             {% endfor %}
         </div>
 
-        <div class="form-group">
-            {{ form.category_id.label }}
-            {{ form.category_id(class="form-control") }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>{{ form.category_id.label.text }}</label>
+                {{ form.category_id(class="form-control dropdown") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.deadline.label.text }}</label>
+                {{ form.deadline(class="form-control") }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>{{ form.format.label.text }}</label>
+                {{ form.format(class="form-control dropdown") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.city.label.text }}</label>
+                {{ form.city(class="form-control", placeholder="Львів, Київ або залиште порожнім") }}
+                {% for error in form.city.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
         </div>
 
         <div class="form-group">
-            {{ form.description.label }}
-            {{ form.description(class="form-control", rows=5) }}
+            <label>{{ form.description.label.text }}</label>
+            {{ form.description(class="form-control", rows=5, placeholder="Опишіть деталі, умови та переваги...") }}
             {% for error in form.description.errors %}
                 <span class="error">{{ error }}</span>
             {% endfor %}
         </div>
 
         <div class="form-group">
-            {{ form.requirements.label }}
-            {{ form.requirements(class="form-control", rows=3) }}
+            <label>{{ form.requirements.label.text }}</label>
+            {{ form.requirements(class="form-control", rows=3, placeholder="Знання мов, технологій тощо...") }}
         </div>
 
         <div class="form-group">
-            {{ form.deadline.label }}
-            {{ form.deadline(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.link.label }}
+            <label>{{ form.link.label.text }}</label>
             {{ form.link(class="form-control", placeholder="https://...") }}
             {% for error in form.link.errors %}
                 <span class="error">{{ error }}</span>

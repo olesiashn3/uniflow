@@ -5,41 +5,58 @@
 {% block content %}
 <div class="detail-container">
     <div class="detail-header">
-        <a href="{{ url_for('events.index') }}" class="back-link">← Назад</a>
-        <span class="category-badge">{{ event.category.name if event.category else 'Інше' }}</span>
+        <a href="{{ url_for('events.index') }}" class="back-link">
+            <i class="ph ph-arrow-left"></i> Повернутися до списку
+        </a>
+        <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+            {{ event.category.name if event.category else 'Інше' }}
+        </span>
     </div>
 
     <h1 class="detail-title">{{ event.title }}</h1>
 
     <div class="detail-meta">
         {% if event.deadline %}
-            <span> Дедлайн: {{ event.deadline.strftime('%d.%m.%Y') }}</span>
+            <span><i class="ph ph-calendar-blank"></i> Дедлайн: {{ event.deadline.strftime('%d.%m.%Y') }}</span>
         {% endif %}
-        <span> Автор: {{ event.author.username }}</span>
-        <span> {{ event.category.name if event.category else 'Інше' }}</span>
+        <span><i class="ph ph-user"></i> Додав(ла): {{ event.author.username }}</span>
+
+        {% if event.format %}
+            <span><i class="ph ph-desktop"></i> Формат: {{ 'Онлайн' if event.format == 'online' else 'Офлайн' }}</span>
+        {% endif %}
+
+        {% if event.city %}
+            <span><i class="ph ph-map-pin"></i> Місто: {{ event.city }}</span>
+        {% endif %}
     </div>
 
     <div class="detail-body">
         <h3>Опис</h3>
-        <p>{{ event.description }}</p>
+        <p style="white-space: pre-line;">{{ event.description }}</p>
 
         {% if event.requirements %}
-            <h3>Вимоги</h3>
-            <p>{{ event.requirements }}</p>
+            <h3>Вимоги до кандидата</h3>
+            <p style="white-space: pre-line;">{{ event.requirements }}</p>
         {% endif %}
 
         {% if event.link %}
-            <a href="{{ event.link }}" target="_blank" class="btn btn-primary">
-                🔗 Офіційний сайт
-            </a>
+            <div style="margin-top: 32px;">
+                <a href="{{ event.link }}" target="_blank" class="btn btn-primary">
+                    Перейти на сайт програми <i class="ph ph-arrow-up-right"></i>
+                </a>
+            </div>
         {% endif %}
     </div>
 
     {% if current_user.is_authenticated %}
     <div class="detail-actions">
         <form action="{{ url_for('favorites.toggle', event_id=event.id) }}" method="POST" id="fav-form">
-            <button type="submit" class="btn {% if is_favorite %}btn-danger{% else %}btn-outline{% endif %}" id="fav-btn">
-                {% if is_favorite %} У вибраному{% else %} Додати у вибране{% endif %}
+            <button type="submit" class="btn {% if is_favorite %}btn-outline{% else %}btn-card{% endif %}" id="fav-btn">
+                {% if is_favorite %}
+                    <i class="ph-fill ph-heart" style="color: var(--accent); margin-right: 8px;"></i> Видалити з обраного
+                {% else %}
+                    <i class="ph ph-heart" style="margin-right: 8px;"></i> Зберегти в обране
+                {% endif %}
             </button>
         </form>
     </div>

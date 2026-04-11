@@ -14,8 +14,14 @@ def index():
     search = request.args.get('search', '')
     category_id = request.args.get('category', 0, type=int)
     sort = request.args.get('sort', 'new')
+    format_type = request.args.get('format', '')
 
+    # Обираємо тільки схвалені події
     query = Event.query.filter_by(status='approved')
+
+    # ДОДАНО: Фільтруємо прострочені події (показуємо лише ті, де дедлайн у майбутньому або відсутній)
+    # Зверни увагу: треба імпортувати date з datetime (вже має бути в файлі)
+    query = query.filter((Event.deadline >= date.today()) | (Event.deadline == None))
 
     if search:
         query = query.filter(Event.title.ilike(f'%{search}%'))
@@ -23,12 +29,16 @@ def index():
     if category_id:
         query = query.filter_by(category_id=category_id)
 
+    if format_type in ['online', 'offline']:
+        query = query.filter_by(format=format_type)
+
     if sort == 'deadline':
-        query = query.order_by(Event.deadline.asc())
+        query = query.filter(Event.deadline != None).order_by(Event.deadline.asc())
     else:
         query = query.order_by(Event.created_at.desc())
 
     events_list = query.paginate(page=page, per_page=9, error_out=False)
+    # ... решта коду залишається без змін ...
     categories = Category.query.all()
 
     favorite_ids = []
@@ -85,6 +95,8 @@ def add():
             requirements=form.requirements.data,
             deadline=form.deadline.data,
             link=form.link.data,
+            format=form.format.data or None,
+            city=form.city.data or None,
             category_id=form.category_id.data,
             author_id=current_user.id,
             status='pending'

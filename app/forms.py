@@ -60,5 +60,14 @@ class EventForm(FlaskForm):
         Optional(),
         URL(message='Введіть коректне посилання')
     ])
+    format = SelectField('Формат', choices=[
+        ('', 'Не вказано'),
+        ('online', 'Онлайн'),
+        ('offline', 'Офлайн')
+    ], validators=[Optional()])
+    city = StringField('Місто', validators=[
+        Optional(),
+        Length(max=100)
+    ])
     category_id = SelectField('Категорія', coerce=int)
     submit = SubmitField('Додати подію')

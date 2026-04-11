@@ -16,7 +16,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(10), default='user')  # 'user' або 'admin'
+    role = db.Column(db.String(10), default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     events = db.relationship('Event', backref='author', lazy='dynamic')
@@ -53,7 +53,9 @@ class Event(db.Model):
     requirements = db.Column(db.Text)
     deadline = db.Column(db.Date)
     link = db.Column(db.String(500))
-    status = db.Column(db.String(10), default='pending')  # pending/approved/rejected
+    format = db.Column(db.String(10), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.String(10), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
