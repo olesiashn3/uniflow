@@ -4,9 +4,9 @@ from PIL import Image
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Event, Category, Favorite
+from app.models import Event, Category, Favorite, Question  # ДОДАНО Question
 from app.forms import EventForm
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime  # ДОДАНО datetime
 
 events = Blueprint('events', __name__)
 
@@ -54,7 +54,6 @@ def index():
     events_list = query.paginate(page=page, per_page=9, error_out=False)
     categories = Category.query.all()
 
-    # Розширений список міст України
     popular_cities = [
         'Київ', 'Львів', 'Одеса', 'Харків', 'Дніпро',
         'Івано-Франківськ', 'Тернопіль', 'Вінниця', 'Луцьк', 'Чернівці'
@@ -93,7 +92,10 @@ def detail(id):
             event_id=event.id
         ).first() is not None
 
-    return render_template('events/detail.html', event=event, is_favorite=is_favorite)
+    # ДОДАНО: Витягуємо питання для події
+    questions = event.questions.order_by(Question.created_at.desc()).all()
+
+    return render_template('events/detail.html', event=event, is_favorite=is_favorite, questions=questions)
 
 
 @events.route('/add', methods=['GET', 'POST'])
@@ -134,3 +136,45 @@ def my_events():
     user_events = Event.query.filter_by(author_id=current_user.id) \
         .order_by(Event.created_at.desc()).all()
     return render_template('events/my_events.html', events=user_events)
+
+
+# ДОДАНО: Маршрут для створення питання
+@events.route('/event/<int:id>/ask', methods=['POST'])
+@login_required
+def ask_question(id):
+    event = Event.query.get_or_404(id)
+    question_text = request.form.get('question')
+
+    if question_text and len(question_text.strip()) > 0:
+        question = Question(text=question_text.strip(), user_id=current_user.id, event_id=event.id)
+        db.session.add(question)
+        db.session.commit()
+        flash('Ваше запитання надіслано!', 'success')
+    else:
+        flash('Запитання не може бути порожнім.', 'danger')
+
+    return redirect(url_for('events.detail', id=id))
+
+
+# ДОДАНО: Маршрут для ВІДПОВІДІ на питання (Тільки для автора)
+@events.route('/question/<int:question_id>/answer', methods=['POST'])
+@login_required
+def answer_question(question_id):
+    question = Question.query.get_or_404(question_id)
+    event = question.event
+
+    # Перевірка: чи поточний юзер є автором події
+    if current_user.id != event.author_id and current_user.role != 'admin':
+        flash('У вас немає прав для відповіді на це запитання.', 'danger')
+        return redirect(url_for('events.detail', id=event.id))
+
+    answer_text = request.form.get('answer')
+    if answer_text and len(answer_text.strip()) > 0:
+        question.answer = answer_text.strip()
+        question.answered_at = datetime.utcnow()
+        db.session.commit()
+        flash('Відповідь успішно додано!', 'success')
+    else:
+        flash('Відповідь не може бути порожньою.', 'danger')
+
+    return redirect(url_for('events.detail', id=event.id))
