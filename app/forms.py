@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed  # ДОДАНО: Для роботи з файлами
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DateField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional, URL
 from app.models import User
@@ -69,5 +70,11 @@ class EventForm(FlaskForm):
         Optional(),
         Length(max=100)
     ])
+
+    # ДОДАНО: Поле для завантаження банера
+    image = FileField('Обкладинка події (банер)', validators=[
+        FileAllowed(['jpg', 'png', 'jpeg'], 'Дозволені лише зображення (JPG, PNG)')
+    ])
+
     category_id = SelectField('Категорія', coerce=int)
     submit = SubmitField('Додати подію')

@@ -4,6 +4,13 @@
 
 {% block content %}
 <div class="detail-container">
+
+    {% if event.image_file %}
+    <div style="margin: -48px -48px 32px -48px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; height: 320px; background-color: var(--bg); display: flex; align-items: center; justify-content: center;">
+        <img src="{{ url_for('static', filename='uploads/' + event.image_file) }}" alt="Банер події" style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+    {% endif %}
+
     <div class="detail-header">
         <a href="{{ url_for('events.index') }}" class="back-link">
             <i class="ph ph-arrow-left"></i> Повернутися до списку

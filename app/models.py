@@ -55,6 +55,10 @@ class Event(db.Model):
     link = db.Column(db.String(500))
     format = db.Column(db.String(10), nullable=True)
     city = db.Column(db.String(100), nullable=True)
+
+    # ДОДАНО: Поле для зберігання назви файлу зображення
+    image_file = db.Column(db.String(255), nullable=True)
+
     status = db.Column(db.String(10), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

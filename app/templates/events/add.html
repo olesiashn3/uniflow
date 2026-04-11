@@ -7,7 +7,7 @@
     <h2>Додати можливість</h2>
     <p class="auth-subtitle">Ваша публікація з'явиться у стрічці після перевірки модератором</p>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
         <div class="form-group">
@@ -61,6 +61,17 @@
             {{ form.link(class="form-control", placeholder="https://...") }}
             {% for error in form.link.errors %}
                 <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group" style="background: var(--bg); padding: 16px; border-radius: var(--radius-sm); border: 1px dashed var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <i class="ph ph-image" style="font-size: 20px; color: var(--primary);"></i>
+                {{ form.image.label.text }}
+            </label>
+            {{ form.image(class="form-control", style="border: none; background: transparent; padding: 0;") }}
+            {% for error in form.image.errors %}
+                <span class="error" style="display: block; margin-top: 8px;">{{ error }}</span>
             {% endfor %}
         </div>
 

@@ -1,4 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+import os
+import secrets
+from PIL import Image
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from app import db
 from app.models import Event, Category, Favorite
@@ -6,6 +9,21 @@ from app.forms import EventForm
 from datetime import date, timedelta
 
 events = Blueprint('events', __name__)
+
+# Функція для збереження та оптимізації картинки
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(current_app.root_path, 'static/uploads', picture_fn)
+
+    # Оптимізуємо розмір до формату банера
+    output_size = (1200, 600)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
 
 
 @events.route('/')
@@ -16,11 +34,9 @@ def index():
     sort = request.args.get('sort', 'new')
     format_type = request.args.get('format', '')
 
-    # Обираємо тільки схвалені події
     query = Event.query.filter_by(status='approved')
 
-    # ДОДАНО: Фільтруємо прострочені події (показуємо лише ті, де дедлайн у майбутньому або відсутній)
-    # Зверни увагу: треба імпортувати date з datetime (вже має бути в файлі)
+    # Фільтруємо прострочені події
     query = query.filter((Event.deadline >= date.today()) | (Event.deadline == None))
 
     if search:
@@ -38,7 +54,6 @@ def index():
         query = query.order_by(Event.created_at.desc())
 
     events_list = query.paginate(page=page, per_page=9, error_out=False)
-    # ... решта коду залишається без змін ...
     categories = Category.query.all()
 
     favorite_ids = []
@@ -89,6 +104,11 @@ def add():
     form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
 
     if form.validate_on_submit():
+        # Обробка зображення, якщо воно завантажене
+        picture_file = None
+        if form.image.data:
+            picture_file = save_picture(form.image.data)
+
         event = Event(
             title=form.title.data,
             description=form.description.data,
@@ -97,6 +117,7 @@ def add():
             link=form.link.data,
             format=form.format.data or None,
             city=form.city.data or None,
+            image_file=picture_file, # Додаємо назву файлу в БД
             category_id=form.category_id.data,
             author_id=current_user.id,
             status='pending'
