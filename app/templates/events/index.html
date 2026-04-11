@@ -2,8 +2,6 @@
 {% block title %}UniFlow — можливості для студентів{% endblock %}
 {% block content %}
 
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
-
 <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-content">
@@ -59,24 +57,39 @@
             </div>
 
             <div class="chips-row">
-                <a href="/" class="chip {% if current_category == 0 %}active{% endif %}">Всі формати</a>
+                <a href="{{ url_for('events.index', search=search, city=current_city, format=current_format) }}"
+                   class="chip {% if current_category == 0 %}active{% endif %}">Всі можливості</a>
                 {% for category in categories %}
-                    <a href="/?category={{ category.id }}{% if search %}&search={{ search }}{% endif %}"
+                    <a href="{{ url_for('events.index', category=category.id, search=search, city=current_city, format=current_format) }}"
                        class="chip {% if current_category == category.id %}active{% endif %}">
                         {{ category.name }}
                     </a>
                 {% endfor %}
             </div>
 
-            <div class="dropdowns-row">
-                <select name="format" class="dropdown" onchange="this.form.submit()">
-                    <option value="">Локація та формат</option>
-                    <option value="online">Тільки Онлайн</option>
-                    <option value="offline">Офлайн події</option>
-                </select>
+            <div class="chips-row" style="margin-top: 4px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <a href="{{ url_for('events.index', category=current_category, search=search) }}"
+                   class="chip {% if not current_city and not current_format %}active{% endif %}">
+                   Всі локації
+                </a>
+
+                <a href="{{ url_for('events.index', category=current_category, search=search, format='online') }}"
+                   class="chip {% if current_format == 'online' %}active{% endif %}" style="border-style: dashed;">
+                   <i class="ph ph-broadcast"></i> Онлайн
+                </a>
+
+                {% for city in popular_cities %}
+                    <a href="{{ url_for('events.index', category=current_category, search=search, city=city, format='offline') }}"
+                       class="chip {% if current_city == city %}active{% endif %}">
+                        <i class="ph ph-map-pin"></i> {{ city }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <div class="dropdowns-row" style="margin-top: 16px;">
                 <select name="sort" class="dropdown" onchange="this.form.submit()">
-                    <option value="new">Спочатку нові</option>
-                    <option value="deadline">Найближчий дедлайн</option>
+                    <option value="new" {% if request.args.get('sort') == 'new' %}selected{% endif %}>Спочатку нові</option>
+                    <option value="deadline" {% if request.args.get('sort') == 'deadline' %}selected{% endif %}>Найближчий дедлайн</option>
                 </select>
             </div>
         </form>
@@ -86,7 +99,11 @@
 <section class="events-section container">
     {% if events.items %}
         <div class="section-header">
-            <h2>Актуальні пропозиції</h2>
+            <h2>
+                {% if current_city %} {{ current_city }}: активні пропозиції
+                {% elif current_format == 'online' %} Онлайн можливості
+                {% else %} Актуальні пропозиції {% endif %}
+            </h2>
             <span class="events-count">{{ events.total }} знайдено</span>
         </div>
 
@@ -119,18 +136,18 @@
                 <p class="event-desc">{{ event.description[:110] }}{% if event.description|length > 110 %}...{% endif %}</p>
 
                 <div class="event-meta">
-                    {% if event.city or event.format == 'online' %}
-                        <span class="meta-item">
-                            <i class="ph ph-map-pin"></i>
-                            {{ event.city if event.format == 'offline' else 'Онлайн' }}
-                        </span>
-                    {% endif %}
+                    <span class="meta-item">
+                        <i class="ph ph-map-pin"></i>
+                        {{ event.city if event.format == 'offline' and event.city else ('Онлайн' if event.format == 'online' else 'Локація не вказана') }}
+                    </span>
 
                     {% if event.deadline %}
                         <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
                             <i class="ph ph-calendar-blank"></i>
-                            {% if days_left is not none and days_left <= 3 %}
+                            {% if days_left is not none and days_left <= 3 and days_left >= 0 %}
                                 Дедлайн: {{ days_left }} дн.
+                            {% elif days_left is not none and days_left < 0 %}
+                                Завершено
                             {% else %}
                                 До {{ event.deadline.strftime('%d.%m.%Y') }}
                             {% endif %}
@@ -142,25 +159,13 @@
             </div>
             {% endfor %}
         </div>
-
     {% else %}
         <div class="empty-state">
             <i class="ph ph-folder-open empty-icon"></i>
-            <h3>Пропозицій не знайдено</h3>
-            <p style="color: var(--text-muted); margin-top: 8px;">Спробуйте змінити параметри фільтрації.</p>
+            <h3>Нічого не знайдено</h3>
+            <p style="color: var(--text-muted); margin-top: 8px;">Спробуйте змінити фільтри локації або категорії.</p>
         </div>
     {% endif %}
 </section>
-
-{% if not current_user.is_authenticated %}
-<section class="cta-section container">
-    <div class="cta-card" style="background: var(--text); border-radius: var(--radius); padding: 64px 40px; text-align: center; color: white;">
-        <i class="ph ph-star" style="font-size: 48px; color: var(--warning); margin-bottom: 24px;"></i>
-        <h2 style="font-family: 'Plus Jakarta Sans'; font-size: 32px; margin-bottom: 16px;">Створіть свій персональний простір</h2>
-        <p style="color: #9CA3AF; margin-bottom: 32px; font-size: 16px;">Авторизуйтесь, щоб зберігати цікаві гранти та отримувати рекомендації на основі ваших інтересів.</p>
-        <a href="{{ url_for('auth.register') }}" class="btn" style="background: white; color: var(--text);">Створити акаунт</a>
-    </div>
-</section>
-{% endif %}
 
 {% endblock %}

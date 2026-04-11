@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,
 from flask_login import login_required, current_user
 from app import db
 from app.models import Favorite, Event
+from datetime import date  # Імпорт для роботи з часом
 
 favorites = Blueprint('favorites', __name__)
 
@@ -9,9 +10,13 @@ favorites = Blueprint('favorites', __name__)
 @favorites.route('/')
 @login_required
 def index():
-    user_favorites = Favorite.query.filter_by(user_id=current_user.id)\
+    user_favorites = Favorite.query.filter_by(user_id=current_user.id) \
         .order_by(Favorite.created_at.desc()).all()
-    return render_template('favorites/index.html', favorites=user_favorites)
+
+    # Додаємо now=date.today(), щоб Jinja знала, який сьогодні день
+    return render_template('favorites/index.html',
+                           favorites=user_favorites,
+                           now=date.today())
 
 
 @favorites.route('/toggle/<int:event_id>', methods=['POST'])
@@ -35,8 +40,9 @@ def toggle(event_id):
         is_favorite = True
         message = 'Додано до вибраного!'
 
+    # Перевірка на AJAX запит (для роботи JS без перезавантаження)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'is_favorite': is_favorite, 'message': message})
 
     flash(message, 'success')
-    return redirect(url_for('events.detail', id=event_id))
+    return redirect(request.referrer or url_for('events.detail', id=event_id))
