@@ -2,6 +2,219 @@
 {% block title %}UniFlow — можливості для студентів{% endblock %}
 {% block content %}
 
+<style>
+    /* =========================================
+       МІКРОАНІМАЦІЇ ТА СТИЛІ ДЛЯ ГОЛОВНОЇ СТОРІНКИ
+       ========================================= */
+
+    /* Плавна поява блоків знизу */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Анімація левітації для іконок */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-12px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* М'яке пульсування фону */
+    @keyframes pulseGlow {
+        0% { opacity: 0.15; transform: scale(1); }
+        50% { opacity: 0.25; transform: scale(1.1); }
+        100% { opacity: 0.15; transform: scale(1); }
+    }
+
+    /* Картки подій */
+    .events-grid .event-card {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .event-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .events-grid .event-card:nth-child(1) { animation-delay: 0.1s; }
+    .events-grid .event-card:nth-child(2) { animation-delay: 0.2s; }
+    .events-grid .event-card:nth-child(3) { animation-delay: 0.3s; }
+    .events-grid .event-card:nth-child(4) { animation-delay: 0.4s; }
+    .events-grid .event-card:nth-child(5) { animation-delay: 0.5s; }
+    .events-grid .event-card:nth-child(6) { animation-delay: 0.6s; }
+
+    /* ЕФЕКТ "ДИВИТИСЯ БІЛЬШЕ" ДЛЯ КАРТОК */
+    .events-collapse-wrapper {
+        position: relative;
+        max-height: 860px; /* Збільшили! Тепер це майже 2 ряди карток */
+        overflow: hidden;
+        transition: max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .events-collapse-wrapper.expanded {
+        max-height: 5000px; /* Достатньо місця для всіх карток */
+    }
+
+    .events-fade-overlay {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        height: 200px;
+        background: linear-gradient(to bottom, rgba(248,250,252,0) 0%, #f8fafc 80%);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 20px;
+        z-index: 5;
+    }
+
+    .events-collapse-wrapper.expanded .events-fade-overlay {
+        display: none;
+    }
+
+    .btn-show-more {
+        background: #ffffff;
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 12px 32px;
+        border-radius: 50px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-show-more:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    /* Bento Блок */
+    .bento-section {
+        margin: 80px auto 60px auto;
+        opacity: 0;
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.4s;
+    }
+
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        margin-top: 32px;
+    }
+
+    .bento-card {
+        border-radius: 24px;
+        padding: 40px;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bento-card:hover { transform: translateY(-8px); }
+
+    .bento-text-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+
+    .bento-text-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.05); }
+
+    .bento-gradient-card {
+        background: linear-gradient(135deg, var(--primary), #d946ef);
+        color: white;
+        box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 280px;
+    }
+
+    .bento-gradient-card:hover { box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3); }
+
+    .floating-icon { animation: float 6s ease-in-out infinite; }
+
+    /* Фінальний CTA (Call to Action) */
+    .cta-final-section {
+        margin: 80px auto;
+        padding: 0 20px;
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.6s;
+        opacity: 0;
+    }
+
+    .cta-dark-box {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        border-radius: 32px;
+        padding: 80px 40px;
+        text-align: center;
+        color: #ffffff;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-dark-box::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -10%;
+        width: 50%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(30deg);
+        pointer-events: none;
+    }
+
+    .cta-headline {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+        letter-spacing: -1px;
+    }
+
+    .cta-subtitle {
+        font-size: 18px;
+        opacity: 0.85;
+        max-width: 600px;
+        margin: 0 auto 40px auto;
+        line-height: 1.6;
+    }
+
+    .cta-button-light {
+        display: inline-block;
+        background: #ffffff;
+        color: #0f172a;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 16px;
+        padding: 16px 36px;
+        border-radius: 16px;
+        text-decoration: none;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+
+    .cta-button-light:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(255, 255, 255, 0.2);
+        color: var(--primary);
+    }
+</style>
+
 <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-content">
@@ -107,58 +320,71 @@
             <span class="events-count">{{ events.total }} знайдено</span>
         </div>
 
-        <div class="events-grid">
-            {% for event in events.items %}
-            {% set days_left = (event.deadline - now).days if event.deadline else None %}
-            <div class="event-card">
-                <div class="event-card-top">
-                    <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
-                        {{ event.category.name if event.category else 'Інше' }}
-                    </span>
+        <div class="events-collapse-wrapper" id="eventsWrapper" {% if events.items|length <= 6 %}style="max-height: none;"{% endif %}>
 
-                    {% if current_user.is_authenticated %}
-                    <form action="/favorites/toggle/{{ event.id }}" method="POST" class="heart-form">
-                        <button type="submit" class="heart-btn {% if event.id in favorite_ids %}active{% endif %}">
-                            {% if event.id in favorite_ids %}
-                                <i class="ph-fill ph-heart"></i>
-                            {% else %}
-                                <i class="ph ph-heart"></i>
-                            {% endif %}
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-
-                <h3 class="event-title">
-                    <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
-                </h3>
-
-                <p class="event-desc">{{ event.description[:110] }}{% if event.description|length > 110 %}...{% endif %}</p>
-
-                <div class="event-meta">
-                    <span class="meta-item">
-                        <i class="ph ph-map-pin"></i>
-                        {{ event.city if event.format == 'offline' and event.city else ('Онлайн' if event.format == 'online' else 'Локація не вказана') }}
-                    </span>
-
-                    {% if event.deadline %}
-                        <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
-                            <i class="ph ph-calendar-blank"></i>
-                            {% if days_left is not none and days_left <= 3 and days_left >= 0 %}
-                                Дедлайн: {{ days_left }} дн.
-                            {% elif days_left is not none and days_left < 0 %}
-                                Завершено
-                            {% else %}
-                                До {{ event.deadline.strftime('%d.%m.%Y') }}
-                            {% endif %}
+            <div class="events-grid">
+                {% for event in events.items %}
+                {% set days_left = (event.deadline - now).days if event.deadline else None %}
+                <div class="event-card">
+                    <div class="event-card-top">
+                        <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                            {{ event.category.name if event.category else 'Інше' }}
                         </span>
-                    {% endif %}
-                </div>
 
-                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути деталі</a>
+                        {% if current_user.is_authenticated %}
+                        <form action="/favorites/toggle/{{ event.id }}" method="POST" class="heart-form">
+                            <button type="submit" class="heart-btn {% if event.id in favorite_ids %}active{% endif %}">
+                                {% if event.id in favorite_ids %}
+                                    <i class="ph-fill ph-heart"></i>
+                                {% else %}
+                                    <i class="ph ph-heart"></i>
+                                {% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    <h3 class="event-title">
+                        <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
+                    </h3>
+
+                    <p class="event-desc">{{ event.description[:110] }}{% if event.description|length > 110 %}...{% endif %}</p>
+
+                    <div class="event-meta">
+                        <span class="meta-item">
+                            <i class="ph ph-map-pin"></i>
+                            {{ event.city if event.format == 'offline' and event.city else ('Онлайн' if event.format == 'online' else 'Локація не вказана') }}
+                        </span>
+
+                        {% if event.deadline %}
+                            <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
+                                <i class="ph ph-calendar-blank"></i>
+                                {% if days_left is not none and days_left <= 3 and days_left >= 0 %}
+                                    Дедлайн: {{ days_left }} дн.
+                                {% elif days_left is not none and days_left < 0 %}
+                                    Завершено
+                                {% else %}
+                                    До {{ event.deadline.strftime('%d.%m.%Y') }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути деталі</a>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+
+            {% if events.items|length > 6 %}
+            <div class="events-fade-overlay">
+                <button type="button" class="btn-show-more" onclick="document.getElementById('eventsWrapper').classList.add('expanded');">
+                    Дивитися більше <i class="ph ph-caret-down"></i>
+                </button>
+            </div>
+            {% endif %}
+
         </div>
+
     {% else %}
         <div class="empty-state">
             <i class="ph ph-folder-open empty-icon"></i>
@@ -166,6 +392,67 @@
             <p style="color: var(--text-muted); margin-top: 8px;">Спробуйте змінити фільтри локації або категорії.</p>
         </div>
     {% endif %}
+</section>
+
+<section class="container bento-section">
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 36px; font-weight: 800; color: var(--text); margin-bottom: 8px;">
+            Твій простір можливостей
+        </h2>
+        <p style="color: var(--text-muted); font-size: 16px; margin: 0;">Зроби своє студентське життя цікавішим та знаходь своїх людей</p>
+    </div>
+
+    <div class="bento-grid">
+        <div class="bento-card bento-text-card">
+            <div style="width: 56px; height: 56px; background: #f0f4ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--primary); margin-bottom: 24px;">
+                <i class="ph-fill ph-users-three"></i>
+            </div>
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 12px; color: var(--text);">
+                Нічого не пропустити
+            </h3>
+            <p style="color: var(--text-muted); line-height: 1.7; font-size: 15px; margin: 0;">
+                Скільки крутих івентів проходять повз нас просто тому що вони загубилися в нескінченних чатах? UniFlow створений, щоб це змінити. Ми об'єднуємо студентів: ділися ініціативами, допомагай іншим і залітай у найцікавіші проєкти разом.
+            </p>
+        </div>
+
+        <div class="bento-card bento-gradient-card">
+            <div style="position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: rgba(255,255,255,0.15); border-radius: 50%; filter: blur(30px); animation: pulseGlow 4s infinite;"></div>
+
+            <div style="position: relative; z-index: 2;">
+                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 12px; line-height: 1.2;">
+                    Насичене студентство
+                </h3>
+                <p style="font-size: 16px; opacity: 0.9; line-height: 1.6; max-width: 90%; margin: 0;">
+                    Забудь про нудну рутину. Знаходь найцікавіші пропозиції, збирай команду мрії та проживай свої університетські роки на максимум!
+                </p>
+            </div>
+
+            <div class="floating-icon" style="position: absolute; bottom: 20px; right: 30px; z-index: 1;">
+                <i class="ph-fill ph-planet" style="font-size: 100px; opacity: 0.25;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container cta-final-section">
+    <div class="cta-dark-box">
+        <h2 class="cta-headline">
+            Твоя кар'єра починається<br>з одного кліку
+        </h2>
+        <p class="cta-subtitle">
+            Приєднуйся до UniFlow, щоб знаходити найкращі кар'єрні та творчі можливості, обмінюватися досвідом та будувати своє майбутнє вже сьогодні.
+        </p>
+
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('events.add') }}" class="cta-button-light">
+                Опублікувати подію
+            </a>
+        {% else %}
+            <a href="{{ url_for('auth.register') }}" class="cta-button-light">
+                Зареєструватися безкоштовно
+            </a>
+        {% endif %}
+    </div>
 </section>
 
 {% endblock %}
