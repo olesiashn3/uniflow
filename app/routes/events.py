@@ -7,6 +7,7 @@ from app import db
 from app.models import Event, Category, Favorite, Question
 from app.forms import EventForm
 from datetime import date, timedelta, datetime
+from app.models import Event, Category, Favorite, Question, Company
 
 events = Blueprint('events', __name__)
 
@@ -185,6 +186,27 @@ def my_events():
         .order_by(Event.created_at.desc()).all()
     return render_template('events/my_events.html', events=user_events)
 
+@events.route('/subscriptions')
+@login_required
+def subscriptions():
+    # Дістаємо всі компанії, на які підписаний юзер
+    companies = current_user.subscribed_companies
+    return render_template('events/subscriptions.html', companies=companies)
+
+# ДОДАТКОВО: Роут для самої підписки/відписки (щоб кнопка працювала)
+@events.route('/company/<int:id>/toggle_subscribe', methods=['POST'])
+@login_required
+def toggle_subscribe(id):
+    company = Company.query.get_or_404(id)
+    if current_user.is_subscribed(company):
+        current_user.subscribed_companies.remove(company)
+        flash(f'Ви відписалися від {company.name}', 'info')
+    else:
+        current_user.subscribed_companies.append(company)
+        flash(f'Ви підписалися на {company.name}', 'success')
+    db.session.commit()
+    # Повертаємо туди, звідки прийшов юзер
+    return redirect(request.referrer or url_for('events.index'))
 
 @events.route('/event/<int:id>/ask', methods=['POST'])
 @login_required
