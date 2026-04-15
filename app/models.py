@@ -14,6 +14,11 @@ subscriptions = db.Table('subscriptions',
     db.Column('company_id', db.Integer, db.ForeignKey('companies.id'), primary_key=True)
 )
 
+user_interests = db.Table('user_interests',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('category_id', db.Integer, db.ForeignKey('categories.id'), primary_key=True)
+)
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -24,12 +29,15 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(10), default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    onboarding_done = db.Column(db.Boolean, default=False)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
 
     company = db.relationship('Company', foreign_keys=[company_id], backref='members')
     events = db.relationship('Event', backref='author', lazy='dynamic')
     favorites = db.relationship('Favorite', backref='user', lazy='dynamic')
     questions = db.relationship('Question', backref='author', lazy='dynamic')
+    interests = db.relationship('Category', secondary=user_interests, lazy='subquery',
+                                backref=db.backref('interested_users', lazy=True))
     subscribed_companies = db.relationship('Company', secondary=subscriptions,
                                            foreign_keys=[subscriptions.c.user_id, subscriptions.c.company_id],
                                            backref=db.backref('subscribers', lazy='dynamic'))

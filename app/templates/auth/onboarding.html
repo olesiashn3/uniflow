@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Налаштування профілю | UniFlow{% endblock %}
+{% block content %}
+
+<style>
+    .onboarding-wrapper {
+        min-height: calc(100vh - 160px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .onboarding-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 50px 40px;
+        max-width: 680px; /* Зробили ширше, щоб влізла велика хмара тегів */
+        width: 100%;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.03);
+        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .onboarding-header {
+        text-align: center;
+        margin-bottom: 36px;
+    }
+
+    /* Іконка з легким градієнтом, але не громіздка */
+    .onboarding-icon-wrap {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(217, 70, 239, 0.1));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px auto;
+    }
+
+    .onboarding-icon-wrap i {
+        font-size: 32px;
+        background: linear-gradient(135deg, var(--primary), #d946ef);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .onboarding-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        color: var(--text);
+    }
+
+    .onboarding-desc {
+        color: var(--text-muted);
+        font-size: 16px;
+        line-height: 1.6;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    /* ХМАРА ТЕГІВ */
+    .interests-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 40px;
+    }
+
+    .hidden-checkbox {
+        display: none;
+    }
+
+    /* Спокійний стан: чистий, лаконічний */
+    .interest-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 22px;
+        border-radius: 100px;
+        background-color: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        user-select: none;
+    }
+
+    /* Ховер: ледь помітне підсвічування */
+    .interest-chip:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        background-color: rgba(99, 102, 241, 0.02);
+        color: var(--text);
+    }
+
+    /* АКТИВНИЙ СТАН: Ось він, красивий соковитий градієнт! */
+    .hidden-checkbox:checked + .interest-chip {
+        background: linear-gradient(135deg, var(--primary), #d946ef);
+        border-color: transparent;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(217, 70, 239, 0.25);
+    }
+
+    .chip-icon {
+        display: none;
+        font-size: 16px;
+    }
+
+    /* Галочка з'являється плавно */
+    .hidden-checkbox:checked + .interest-chip .chip-icon {
+        display: inline-block;
+        animation: scaleIn 0.3s ease forwards;
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0); }
+        to { transform: scale(1); }
+    }
+
+    /* Кнопки */
+    .onboarding-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .btn-large {
+        padding: 16px 40px;
+        font-size: 16px;
+        border-radius: 100px;
+        width: 100%;
+        max-width: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-skip {
+        color: var(--text-muted);
+        font-size: 15px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .btn-skip:hover {
+        color: var(--text);
+    }
+</style>
+
+<div class="onboarding-wrapper">
+    <div class="onboarding-card">
+        <div class="onboarding-header">
+            <div class="onboarding-icon-wrap">
+                <i class="ph-fill ph-sparkle"></i>
+            </div>
+            <h1 class="onboarding-title">Що тебе драйвить?</h1>
+            <p class="onboarding-desc">
+                Вибери теми, які тебе надихають. Ми зберемо для тебе персональну стрічку можливостей та інсайтів.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.onboarding') }}">
+            <div class="interests-grid">
+                {% for category in categories %}
+                    <input type="checkbox" name="categories" value="{{ category.id }}" id="cat_{{ category.id }}" class="hidden-checkbox">
+                    <label for="cat_{{ category.id }}" class="interest-chip">
+                        <i class="ph-bold ph-check chip-icon"></i>
+                        {{ category.name }}
+                    </label>
+                {% endfor %}
+            </div>
+
+            <div class="onboarding-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    Готово, погнали! <i class="ph-bold ph-rocket-launch"></i>
+                </button>
+                <button type="submit" class="btn-skip">
+                    Пропустити цей крок
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

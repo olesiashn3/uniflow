@@ -28,19 +28,42 @@ def save_picture(form_picture):
 @events.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
-    search = request.args.get('search', '')
+    search = request.args.get('search', '').strip()
     category_id = request.args.get('category', 0, type=int)
     sort = request.args.get('sort', 'new')
-    format_type = request.args.get('format', '')
-    city_filter = request.args.get('city', '')
+    format_type = request.args.get('format', '').strip()
+    city_filter = request.args.get('city', '').strip()
+    feed = request.args.get('feed', 'all')
 
     query = Event.query.filter_by(status='approved')
     query = query.filter((Event.deadline >= date.today()) | (Event.deadline == None))
 
+    # ==========================================
+    # ГІБРИДНА СИСТЕМА РЕКОМЕНДАЦІЙ (Для тебе)
+    # ==========================================
+    if feed == 'foryou' and current_user.is_authenticated:
+        # 1. Явні інтереси (з онбордінгу)
+        interest_ids = [category.id for category in current_user.interests]
+
+        # 2. Неявні інтереси (аналіз активності: що юзер додавав у Вибране)
+        favorites = current_user.favorites.all()
+        activity_cat_ids = [fav.event.category_id for fav in favorites if fav.event and fav.event.category_id]
+
+        # 3. Об'єднуємо та прибираємо дублікати
+        recommended_category_ids = list(set(interest_ids + activity_cat_ids))
+
+        # 4. Фільтруємо події за цими категоріями
+        if recommended_category_ids:
+            query = query.filter(Event.category_id.in_(recommended_category_ids))
+        else:
+            # Якщо інтересів немає, стрічка "Для тебе" має бути порожньою
+            query = query.filter(Event.id < 0)
+
+    # Звичайні фільтри
     if search:
         query = query.filter(Event.title.ilike(f'%{search}%'))
-    if category_id:
-        query = query.filter_by(category_id=category_id)
+    if category_id > 0:
+        query = query.filter(Event.category_id == category_id)
     if format_type:
         query = query.filter_by(format=format_type)
     if city_filter:
@@ -52,7 +75,9 @@ def index():
         query = query.order_by(Event.created_at.desc())
 
     events_list = query.paginate(page=page, per_page=9, error_out=False)
-    categories = Category.query.all()
+
+    # Сортуємо категорії за алфавітом
+    categories = Category.query.order_by(Category.name.asc()).all()
 
     popular_cities = [
         'Київ', 'Львів', 'Одеса', 'Харків', 'Дніпро',
@@ -61,7 +86,7 @@ def index():
 
     favorite_ids = []
     if current_user.is_authenticated:
-        favorite_ids = [f.event_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
+        favorite_ids = [f.event_id for f in current_user.favorites.all()]
 
     return render_template('events/index.html',
                            events=events_list,
@@ -71,6 +96,7 @@ def index():
                            current_category=category_id,
                            current_city=city_filter,
                            current_format=format_type,
+                           current_feed=feed,
                            favorite_ids=favorite_ids,
                            now=date.today())
 
@@ -103,7 +129,6 @@ def add():
     form = EventForm()
     form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
 
-    # ДОДАНО: Логіка вибору автора (Особисто чи від компанії)
     form.company_id.choices = [(0, f"Особисто ({current_user.username})")]
     if current_user.company:
         form.company_id.choices.append((current_user.company.id, f"Від імені: {current_user.company.name}"))
@@ -113,7 +138,6 @@ def add():
         if form.image.data:
             picture_file = save_picture(form.image.data)
 
-        # ДОДАНО: Визначаємо вибрану компанію
         selected_company = form.company_id.data if form.company_id.data != 0 else None
 
         event = Event(
@@ -126,7 +150,7 @@ def add():
             city=form.city.data or None,
             image_file=picture_file,
             category_id=form.category_id.data,
-            company_id=selected_company,  # ДОДАЛИ СЮДИ!
+            company_id=selected_company,
             author_id=current_user.id,
             status='pending'
         )
