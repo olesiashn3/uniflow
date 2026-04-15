@@ -224,7 +224,7 @@
         .cta-subtitle { margin: 0 auto; }
     }
 
-    /* ЛАКОНІЧНІ ТАБИ (ДЛЯ ТЕБЕ / ВСІ ПОДІЇ) */
+    /* ЛАКОНІЧНІ ТАБИ (ДЛЯ ТЕБЕ / ПІДПИСКИ / ВСІ ПОДІЇ) */
     .feed-tabs-container {
         display: flex;
         gap: 40px;
@@ -249,15 +249,14 @@
     }
 
     .feed-tab.active {
-        color: var(--text); /* Суворий чорний/темний замість синього */
+        color: var(--text);
         font-weight: 700;
     }
 
-    /* Красива лінія підкреслення за допомогою псевдоелемента */
     .feed-tab.active::after {
         content: '';
         position: absolute;
-        bottom: -1px; /* Накладається рівно на нижній бордер контейнера */
+        bottom: -1px;
         left: 0;
         width: 100%;
         height: 2px;
@@ -370,8 +369,13 @@
            Для тебе
         </a>
 
+        <a href="{{ url_for('events.index', feed='subscriptions', search=search, category=current_category, format=current_format, city=current_city) }}"
+           class="feed-tab {% if current_feed == 'subscriptions' %}active{% endif %}">
+           Мої підписки
+        </a>
+
         <a href="{{ url_for('events.index', feed='all', search=search, category=current_category, format=current_format, city=current_city) }}"
-           class="feed-tab {% if current_feed != 'foryou' %}active{% endif %}">
+           class="feed-tab {% if current_feed == 'all' or not current_feed %}active{% endif %}">
            Всі події
         </a>
     </div>
@@ -383,6 +387,7 @@
         <div class="section-header">
             <h2>
                 {% if current_feed == 'foryou' %} Рекомендовано для тебе
+                {% elif current_feed == 'subscriptions' %} Від ваших підписок
                 {% elif current_city %} {{ current_city }}: активні пропозиції
                 {% elif current_format == 'online' %} Онлайн можливості
                 {% else %} Актуальні пропозиції {% endif %}
@@ -458,14 +463,20 @@
     {% else %}
         <div class="empty-state">
             <i class="ph ph-folder-open empty-icon"></i>
-            <h3>{% if current_feed == 'foryou' %}Поки немає рекомендацій{% else %}Нічого не знайдено{% endif %}</h3>
-            <p style="color: var(--text-muted); margin-top: 8px;">
-                {% if current_feed == 'foryou' %}
-                Спробуй зберегти кілька подій у "Вибране" або перемкнися на "Всі події", щоб знайти щось цікаве.
-                {% else %}
-                Спробуйте змінити фільтри локації або категорії.
-                {% endif %}
-            </p>
+
+            {% if current_feed == 'foryou' %}
+                <h3>Поки немає рекомендацій</h3>
+                <p style="color: var(--text-muted); margin-top: 8px;">Спробуй зберегти кілька подій у "Вибране" або перемкнися на "Всі події", щоб знайти щось цікаве.</p>
+
+            {% elif current_feed == 'subscriptions' %}
+                <h3>Тут поки тихо</h3>
+                <p style="color: var(--text-muted); margin-top: 8px;">Ви ще не підписані на жодну компанію або в них поки немає активних подій.<br>Шукайте крутих організаторів у вкладці "Всі події"!</p>
+
+            {% else %}
+                <h3>Нічого не знайдено</h3>
+                <p style="color: var(--text-muted); margin-top: 8px;">Спробуйте змінити фільтри локації або категорії.</p>
+            {% endif %}
+
         </div>
     {% endif %}
 </section>

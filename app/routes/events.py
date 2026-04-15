@@ -33,7 +33,7 @@ def index():
     sort = request.args.get('sort', 'new')
     format_type = request.args.get('format', '').strip()
     city_filter = request.args.get('city', '').strip()
-    feed = request.args.get('feed', 'all')
+    feed = request.args.get('feed', 'all')  # Параметр стрічки
 
     query = Event.query.filter_by(status='approved')
     query = query.filter((Event.deadline >= date.today()) | (Event.deadline == None))
@@ -59,7 +59,23 @@ def index():
             # Якщо інтересів немає, стрічка "Для тебе" має бути порожньою
             query = query.filter(Event.id < 0)
 
-    # Звичайні фільтри
+    # ==========================================
+    # СТРІЧКА ПІДПИСОК (Від підписок)
+    # ==========================================
+    elif feed == 'subscriptions' and current_user.is_authenticated:
+        # Беремо ID всіх компаній, на які підписаний юзер
+        subscribed_company_ids = [company.id for company in current_user.subscribed_companies]
+
+        if subscribed_company_ids:
+            # Фільтруємо події: показуємо тільки від цих компаній
+            query = query.filter(Event.company_id.in_(subscribed_company_ids))
+        else:
+            # Якщо підписок нуль — показуємо порожню стрічку
+            query = query.filter(Event.id < 0)
+
+    # ==========================================
+    # СТАНДАРТНІ ФІЛЬТРИ
+    # ==========================================
     if search:
         query = query.filter(Event.title.ilike(f'%{search}%'))
     if category_id > 0:
