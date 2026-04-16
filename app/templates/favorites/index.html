@@ -3,21 +3,142 @@
 {% block title %}Моє вибране — UniFlow{% endblock %}
 
 {% block content %}
-<section class="container" style="margin-top: 40px; margin-bottom: 60px;">
 
-    <div class="section-header" style="margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 24px;">
-        <div>
-            <h1 style="font-size: 32px; font-weight: 850; letter-spacing: -1px; display: flex; align-items: center; gap: 12px;">
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-                Моє вибране
-            </h1>
-            <p style="color: var(--text-muted); margin-top: 8px; font-size: 16px;">
-                Тут зібрані всі можливості, які ви зберегли для подальшого перегляду.
-            </p>
+    /* РОЗШИРЮЄМО КОНТЕЙНЕР ДЛЯ ЦІЄЇ СТОРІНКИ */
+    .wide-container {
+        max-width: 1400px !important; /* Робимо значно ширше */
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* ==========================================
+       ГОРИЗОНТАЛЬНИЙ ЛАКОНІЧНИЙ ХЕДЕР (Широка смужка)
+       ========================================== */
+    .fav-header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 48px;
+        margin-bottom: 40px;
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--border); /* Лінія на всю нову ширину */
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .fav-text-group {
+        text-align: left;
+    }
+
+    .laconic-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0f4ff;
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .laconic-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 38px;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .laconic-title span {
+        background: linear-gradient(135deg, var(--primary) 0%, #d946ef 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .laconic-desc {
+        font-size: 16px;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .fav-counter-box {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        white-space: nowrap;
+    }
+
+    .fav-counter-box strong {
+        color: var(--primary);
+        font-weight: 800;
+        font-size: 16px;
+    }
+
+    /* ==========================================
+       СІТКА: СУВОРО 3 В РЯД НА ДЕСКТОПІ
+       ========================================== */
+    .events-grid {
+        display: grid;
+        /* Force 3 columns if screen is wider than 1000px */
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 40px;
+        animation: fadeInUp 0.5s ease forwards;
+        animation-delay: 0.1s;
+        opacity: 0;
+    }
+
+    /* Адаптивність для менших екранів */
+    @media (max-width: 1000px) {
+        .events-grid {
+            grid-template-columns: repeat(2, 1fr); /* 2 колонки на планшетах */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .events-grid {
+            grid-template-columns: 1fr; /* 1 колонка на телефонах */
+        }
+        .fav-header-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 24px;
+        }
+    }
+</style>
+
+<section class="wide-container" style="margin-bottom: 100px;">
+
+    <div class="fav-header-container">
+        <div class="fav-text-group">
+            <span class="laconic-badge">
+                <i class="ph-fill ph-heart"></i> Ваша колекція
+            </span>
+            <h1 class="laconic-title">Моє <span>Вибране</span></h1>
+            <p class="laconic-desc">Тут зібрані всі можливості, які ви зберегли для подальшого перегляду.</p>
         </div>
-        <span class="events-count" style="background: var(--bg); border: 1px solid var(--border); padding: 8px 16px; border-radius: 50px; font-weight: 600;">
-            {{ favorites|length }} збережено
-        </span>
+
+        <div class="fav-counter-box">
+            <strong>{{ favorites|length }}</strong> збережено
+        </div>
     </div>
 
     {% if favorites %}
@@ -43,7 +164,7 @@
                     <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
                 </h3>
 
-                <p class="event-desc">{{ event.description[:110] }}...</p>
+                <p class="event-desc">{{ event.description[:100] }}...</p>
 
                 <div class="event-meta">
                     <span class="meta-item">
@@ -65,20 +186,20 @@
                     {% endif %}
                 </div>
 
-                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути деталі</a>
+                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Детальніше</a>
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state" style="padding: 100px 20px; text-align: center; background: var(--glass-bg); border-radius: var(--radius); border: 1px solid var(--border);">
-            <div style="font-size: 64px; color: var(--border); margin-bottom: 24px;">
-                <i class="ph ph-heart-break"></i>
+        <div class="fav-empty-state" style="padding: 100px 20px; text-align: center; background: #ffffff; border-radius: 28px; border: 1px dashed var(--border);">
+            <div style="font-size: 64px; color: #f1f5f9; margin-bottom: 24px;">
+                <i class="ph-fill ph-heart-break"></i>
             </div>
-            <h3 style="font-size: 24px; font-weight: 700;">У вас поки немає збережених подій</h3>
-            <p style="color: var(--text-muted); margin-top: 12px; max-width: 400px; margin-left: auto; margin-right: auto;">
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800;">Тут поки нічого немає</h3>
+            <p style="color: var(--text-muted); margin-top: 12px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;">
                 Натисніть на сердечко на картці будь-якої можливості, щоб вона з'явилася тут.
             </p>
-            <a href="{{ url_for('events.index') }}" class="btn btn-primary" style="margin-top: 32px; display: inline-flex;">
+            <a href="{{ url_for('events.index') }}" class="btn btn-primary" style="margin-top: 32px; padding: 14px 32px; border-radius: 50px;">
                 Повернутися до стрічки
             </a>
         </div>

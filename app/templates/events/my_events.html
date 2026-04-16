@@ -2,36 +2,196 @@
 {% block title %}Мої події — UniFlow{% endblock %}
 
 {% block content %}
-<div style="max-width: 1000px; margin: 48px auto; padding: 0 20px;">
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
-        <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; margin: 0; color: var(--text);">
-            Мої події
-        </h1>
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        {% if events %}
-            <a href="{{ url_for('events.add') }}" class="btn btn-primary" style="padding: 10px 20px; border-radius: 10px; font-weight: 600;">
-                + Додати нову
-            </a>
-        {% endif %}
+    /* Широкий контейнер як у "Вибраному" */
+    .wide-container {
+        max-width: 1400px !important;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* ==========================================
+       ГОРИЗОНТАЛЬНИЙ ХЕДЕР
+       ========================================== */
+    .events-header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 48px;
+        margin-bottom: 40px;
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--border);
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .events-text-group {
+        text-align: left;
+    }
+
+    .laconic-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0f4ff;
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .laconic-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 38px;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .laconic-title span {
+        background: linear-gradient(135deg, var(--primary) 0%, #d946ef 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .laconic-desc {
+        font-size: 16px;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Група кнопок і лічильника */
+    .events-actions-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .events-counter-box {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        white-space: nowrap;
+    }
+
+    .events-counter-box strong {
+        color: var(--primary);
+        font-weight: 800;
+        font-size: 16px;
+    }
+
+    /* ==========================================
+       СІТКА: СУВОРО 3 В РЯД НА ДЕСКТОПІ
+       ========================================== */
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 40px;
+        animation: fadeInUp 0.5s ease forwards;
+        animation-delay: 0.1s;
+        opacity: 0;
+    }
+
+    /* Стилізація статусів */
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .status-approved { background: #dcfce7; color: #166534; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+
+    @media (max-width: 1000px) {
+        .events-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .events-header-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 24px;
+        }
+        .events-actions-group {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        .events-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<section class="wide-container" style="margin-bottom: 100px;">
+
+    <div class="events-header-container">
+        <div class="events-text-group">
+            <span class="laconic-badge">
+                <i class="ph-fill ph-calendar-star"></i> Ваші публікації
+            </span>
+            <h1 class="laconic-title">Мої <span>Події</span></h1>
+            <p class="laconic-desc">Тут знаходяться всі створені вами події. Керуйте ними та відслідковуйте статус модерації.</p>
+        </div>
+
+        <div class="events-actions-group">
+            <div class="events-counter-box">
+                <strong>{{ events|length }}</strong> подій
+            </div>
+
+            {% if events %}
+                <a href="{{ url_for('events.add') }}" class="btn btn-primary" style="padding: 10px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);">
+                    + Додати нову
+                </a>
+            {% endif %}
+        </div>
     </div>
 
     {% if events %}
         <div class="events-grid">
             {% for event in events %}
-            <div class="event-card">
-                <div class="event-card-top" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="event-card" style="box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                <div class="event-card-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
                         {{ event.category.name if event.category else 'Інше' }}
                     </span>
-                    <span style="font-size: 12px; font-weight: 700; color: {% if event.status == 'approved' %}#166534{% elif event.status == 'pending' %}#92400e{% else %}#991b1b{% endif %};">
-                        {% if event.status == 'approved' %}Активна{% elif event.status == 'pending' %}На перевірці{% else %}Відхилено{% endif %}
-                    </span>
+
+                    {% if event.status == 'approved' %}
+                        <span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i> Активна</span>
+                    {% elif event.status == 'pending' %}
+                        <span class="status-badge status-pending"><i class="ph-fill ph-clock-counter-clockwise"></i> На перевірці</span>
+                    {% else %}
+                        <span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Відхилено</span>
+                    {% endif %}
                 </div>
+
                 <h3 class="event-title">
                     <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
                 </h3>
+
                 <p class="event-desc">{{ event.description[:120] }}...</p>
+
                 <div class="event-meta">
                     {% if event.deadline %}
                         <span class="meta-item"><i class="ph ph-calendar-blank"></i> {{ event.deadline.strftime('%d.%m.%Y') }}</span>
@@ -40,24 +200,27 @@
                         <span class="meta-item"><i class="ph ph-desktop"></i> {{ 'Онлайн' if event.format == 'online' else 'Офлайн' }}</span>
                     {% endif %}
                 </div>
+
                 <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card" style="margin-top: 16px;">Переглянути</a>
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <div style="border: 1px solid var(--border); background: var(--bg2); padding: 40px; border-radius: 16px; max-width: 600px; margin: 60px auto; text-align: center;">
-            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text);">
-                Список подій порожній
+        <div style="border: 1px dashed var(--border); background: #ffffff; padding: 60px 20px; border-radius: 28px; max-width: 600px; margin: 60px auto; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.02); animation: fadeInUp 0.5s ease forwards;">
+            <div style="font-size: 56px; color: #f1f5f9; margin-bottom: 20px;">
+                <i class="ph-fill ph-calendar-plus"></i>
+            </div>
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 12px; color: var(--text);">
+                Ви ще не створювали подій
             </h3>
-            <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
-                Ти ще не додавала жодної публікації. Усі твої події та статуси їх модерації зберігатимуться тут.
+            <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Організовуєте хакатон, лекцію чи стажування? Додайте свою першу подію, щоб її побачили студенти.
             </p>
-            <a href="{{ url_for('events.add') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600;">
-                <i class="ph ph-plus"></i> Створити подію
+            <a href="{{ url_for('events.add') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; font-size: 15px; font-weight: 700; border-radius: 50px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);">
+                <i class="ph ph-plus-circle" style="font-size: 18px;"></i> Створити публікацію
             </a>
         </div>
     {% endif %}
 
-</div>
+</section>
 {% endblock %}
-
