@@ -37,56 +37,83 @@
     .events-grid .event-card:nth-child(4) { animation-delay: 0.4s; }
     .events-grid .event-card:nth-child(5) { animation-delay: 0.5s; }
     .events-grid .event-card:nth-child(6) { animation-delay: 0.6s; }
+    .events-grid .event-card:nth-child(7) { animation-delay: 0.7s; }
+    .events-grid .event-card:nth-child(8) { animation-delay: 0.8s; }
+    .events-grid .event-card:nth-child(9) { animation-delay: 0.9s; }
 
-    .events-collapse-wrapper {
-        position: relative;
-        max-height: 860px;
-        overflow: hidden;
-        transition: max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    /* ==========================================
+       КОЛЬОРИ ДЛЯ ВСІХ НОВИХ КАТЕГОРІЙ
+       ========================================== */
+    .badge { padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+    .badge[data-category="IT та розробка"] { background: #e0e7ff; color: #3730a3; }
+    .badge[data-category="SMM та Маркетинг"] { background: #fce7f3; color: #be185d; }
+    .badge[data-category="Startups & Бізнес"] { background: #ffedd5; color: #c2410c; }
+    .badge[data-category="UI/UX Дизайн"] { background: #f3e8ff; color: #6b21a8; }
+    .badge[data-category="Волонтерство"] { background: #dcfce7; color: #15803d; }
+    .badge[data-category="Геймдев (Gamedev)"] { background: #ede9fe; color: #4c1d95; }
+    .badge[data-category="Гранти"] { background: #d1fae5; color: #047857; }
+    .badge[data-category="Еко-ініціативи"] { background: #ccfbf1; color: #0f766e; }
+    .badge[data-category="Закордонні стажування"] { background: #cffafe; color: #0e7490; }
+    .badge[data-category="Конкурси"] { background: #fef9c3; color: #a16207; }
+    .badge[data-category="Конференції"] { background: #e0f2fe; color: #0369a1; }
+    .badge[data-category="Креативні індустрії"] { background: #fae8ff; color: #a21caf; }
+    .badge[data-category="Культура та Мистецтво"] { background: #ffe4e6; color: #be123c; }
+    .badge[data-category="Курси"] { background: #ede9fe; color: #6d28d9; }
+    .badge[data-category="Менеджмент та QA"] { background: #f1f5f9; color: #334155; }
+    .badge[data-category="Наука та гранти"] { background: #dbeafe; color: #1d4ed8; }
+    .badge[data-category="Обміни"] { background: #cffafe; color: #0891b2; }
+    .badge[data-category="Стажування"] { background: #dcfce7; color: #166534; }
+    .badge[data-category="Студрада та активізм"] { background: #fee2e2; color: #b91c1c; }
+    .badge[data-category="Хакатони"] { background: #ffedd5; color: #c2410c; }
+    .badge[data-category="Штучний інтелект (AI)"] { background: #f3e8ff; color: #7e22ce; }
+    .badge[data-category="Інше"] { background: #f1f5f9; color: #475569; }
 
-    .events-collapse-wrapper.expanded {
-        max-height: 5000px;
-    }
-
-    .events-fade-overlay {
-        position: absolute;
-        bottom: 0; left: 0; width: 100%;
-        height: 200px;
-        background: linear-gradient(to bottom, rgba(248,250,252,0) 0%, #f8fafc 80%);
+    /* ==========================================
+       ПАГІНАЦІЯ (Сторінки 1, 2, 3...)
+       ========================================== */
+    .pagination-container {
         display: flex;
-        align-items: flex-end;
         justify-content: center;
-        padding-bottom: 20px;
-        z-index: 5;
-    }
-
-    .events-collapse-wrapper.expanded .events-fade-overlay {
-        display: none;
-    }
-
-    .btn-show-more {
-        background: #ffffff;
-        color: var(--text);
-        border: 1px solid var(--border);
-        padding: 12px 32px;
-        border-radius: 50px;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 700;
-        font-size: 15px;
-        cursor: pointer;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-        transition: all 0.3s ease;
-        display: inline-flex;
         align-items: center;
         gap: 8px;
+        margin-top: 50px;
+        margin-bottom: 20px;
+        animation: fadeInUp 0.8s ease forwards;
     }
 
-    .btn-show-more:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    .page-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: var(--text);
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .page-link:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
         color: var(--primary);
+    }
+
+    .page-link.active {
+        background: var(--primary);
+        color: #ffffff;
         border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .page-ellipsis {
+        color: var(--text-muted);
+        font-weight: 700;
+        padding: 0 4px;
     }
 
     /* Bento Блок */
@@ -224,7 +251,7 @@
         .cta-subtitle { margin: 0 auto; }
     }
 
-    /* ЛАКОНІЧНІ ТАБИ (ДЛЯ ТЕБЕ / ПІДПИСКИ / ВСІ ПОДІЇ) */
+    /* ЛАКОНІЧНІ ТАБИ */
     .feed-tabs-container {
         display: flex;
         gap: 40px;
@@ -244,23 +271,11 @@
         transition: color 0.2s ease;
     }
 
-    .feed-tab:hover {
-        color: var(--text);
-    }
-
-    .feed-tab.active {
-        color: var(--text);
-        font-weight: 700;
-    }
-
+    .feed-tab:hover { color: var(--text); }
+    .feed-tab.active { color: var(--text); font-weight: 700; }
     .feed-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--text);
+        content: ''; position: absolute; bottom: -1px; left: 0;
+        width: 100%; height: 2px; background-color: var(--text);
         border-radius: 2px 2px 0 0;
     }
 </style>
@@ -395,70 +410,86 @@
             <span class="events-count">{{ events.total }} знайдено</span>
         </div>
 
-        <div class="events-collapse-wrapper" id="eventsWrapper" {% if events.items|length <= 6 %}style="max-height: none;"{% endif %}>
+        <div class="events-grid">
+            {% for event in events.items %}
+            {% set days_left = (event.deadline - now).days if event.deadline else None %}
+            <div class="event-card">
+                <div class="event-card-top">
+                    <span class="badge" data-category="{{ event.category.name if event.category else 'Інше' }}">
+                        {{ event.category.name if event.category else 'Інше' }}
+                    </span>
 
-            <div class="events-grid">
-                {% for event in events.items %}
-                {% set days_left = (event.deadline - now).days if event.deadline else None %}
-                <div class="event-card">
-                    <div class="event-card-top">
-                        <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
-                            {{ event.category.name if event.category else 'Інше' }}
-                        </span>
-
-                        {% if current_user.is_authenticated %}
-                        <form action="/favorites/toggle/{{ event.id }}" method="POST" class="heart-form">
-                            <button type="submit" class="heart-btn {% if event.id in favorite_ids %}active{% endif %}">
-                                {% if event.id in favorite_ids %}
-                                    <i class="ph-fill ph-heart"></i>
-                                {% else %}
-                                    <i class="ph ph-heart"></i>
-                                {% endif %}
-                            </button>
-                        </form>
-                        {% endif %}
-                    </div>
-
-                    <h3 class="event-title">
-                        <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
-                    </h3>
-
-                    <p class="event-desc">{{ event.description[:110] }}{% if event.description|length > 110 %}...{% endif %}</p>
-
-                    <div class="event-meta">
-                        <span class="meta-item">
-                            <i class="ph ph-map-pin"></i>
-                            {{ event.city if event.format == 'offline' and event.city else ('Онлайн' if event.format == 'online' else 'Локація не вказана') }}
-                        </span>
-
-                        {% if event.deadline %}
-                            <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
-                                <i class="ph ph-calendar-blank"></i>
-                                {% if days_left is not none and days_left <= 3 and days_left >= 0 %}
-                                    Дедлайн: {{ days_left }} дн.
-                                {% elif days_left is not none and days_left < 0 %}
-                                    Завершено
-                                {% else %}
-                                    До {{ event.deadline.strftime('%d.%m.%Y') }}
-                                {% endif %}
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути деталі</a>
+                    {% if current_user.is_authenticated %}
+                    <form action="/favorites/toggle/{{ event.id }}" method="POST" class="heart-form">
+                        <button type="submit" class="heart-btn {% if event.id in favorite_ids %}active{% endif %}">
+                            {% if event.id in favorite_ids %}
+                                <i class="ph-fill ph-heart"></i>
+                            {% else %}
+                                <i class="ph ph-heart"></i>
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
-                {% endfor %}
-            </div>
 
-            {% if events.items|length > 6 %}
-            <div class="events-fade-overlay">
-                <button type="button" class="btn-show-more" onclick="document.getElementById('eventsWrapper').classList.add('expanded');">
-                    Дивитися більше <i class="ph ph-caret-down"></i>
-                </button>
+                <h3 class="event-title">
+                    <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
+                </h3>
+
+                <p class="event-desc">{{ event.description[:110] }}{% if event.description|length > 110 %}...{% endif %}</p>
+
+                <div class="event-meta">
+                    <span class="meta-item">
+                        <i class="ph ph-map-pin"></i>
+                        {{ event.city if event.format == 'offline' and event.city else ('Онлайн' if event.format == 'online' else 'Локація не вказана') }}
+                    </span>
+
+                    {% if event.deadline %}
+                        <span class="meta-item {% if days_left is not none and days_left <= 3 %}urgent{% endif %}">
+                            <i class="ph ph-calendar-blank"></i>
+                            {% if days_left is not none and days_left <= 3 and days_left >= 0 %}
+                                Дедлайн: {{ days_left }} дн.
+                            {% elif days_left is not none and days_left < 0 %}
+                                Завершено
+                            {% else %}
+                                До {{ event.deadline.strftime('%d.%m.%Y') }}
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card">Переглянути деталі</a>
             </div>
+            {% endfor %}
+        </div>
+
+        {% if events.pages > 1 %}
+        <div class="pagination-container">
+            {% if events.has_prev %}
+                <a href="{{ url_for('events.index', page=events.prev_num, search=search, category=current_category, format=current_format, city=current_city, feed=current_feed) }}" class="page-link">
+                    <i class="ph ph-caret-left"></i>
+                </a>
             {% endif %}
 
+            {% for page_num in events.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if events.page == page_num %}
+                        <span class="page-link active">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('events.index', page=page_num, search=search, category=current_category, format=current_format, city=current_city, feed=current_feed) }}" class="page-link">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="page-ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if events.has_next %}
+                <a href="{{ url_for('events.index', page=events.next_num, search=search, category=current_category, format=current_format, city=current_city, feed=current_feed) }}" class="page-link">
+                    <i class="ph ph-caret-right"></i>
+                </a>
+            {% endif %}
         </div>
+        {% endif %}
 
     {% else %}
         <div class="empty-state">
