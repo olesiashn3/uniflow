@@ -4,11 +4,10 @@
 {% block content %}
 <style>
     .admin-wrapper {
-        max-width: 900px;
+        max-width: 1200px;
         margin: 48px auto;
     }
 
-    /* Лаконічний хедер */
     .admin-header {
         display: flex;
         justify-content: space-between;
@@ -16,7 +15,6 @@
         margin-bottom: 40px;
     }
 
-    /* Бейджик як на сторінках входу */
     .admin-badge {
         display: inline-flex;
         align-items: center;
@@ -30,27 +28,32 @@
         margin-bottom: 12px;
     }
 
-    /* Чисті картки статистики без кольорових цифр */
     .admin-stats {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 16px;
-        margin-bottom: 48px;
+        margin-bottom: 28px;
     }
 
     .admin-stat-card {
         background: #ffffff;
         border: 1px solid var(--border);
         border-radius: 16px;
-        padding: 24px;
+        padding: 18px;
         text-align: left;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .admin-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     }
 
     .admin-stat-num {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 800;
-        color: var(--text); /* Чорний текст замість кольорового */
+        color: var(--text);
         line-height: 1;
         margin-bottom: 6px;
     }
@@ -61,7 +64,129 @@
         font-weight: 500;
     }
 
-    /* Списки (події, організації) */
+    .insights-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .admin-panel {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px;
+    }
+
+    .panel-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .panel-subtitle {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .funnel-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .funnel-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        background: var(--bg2);
+    }
+
+    .funnel-label {
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .funnel-value {
+        font-size: 22px;
+        font-weight: 800;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .trend-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 180px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+    }
+
+    .trend-day {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .trend-bar {
+        width: 100%;
+        border-radius: 3px 3px 0 0;
+        min-height: 2px;
+    }
+
+    .bar-approved { background: #10b981; }
+    .bar-pending { background: #6366f1; }
+    .bar-rejected { background: #ef4444; }
+
+    .bar-legend {
+        display: flex;
+        gap: 14px;
+        margin-top: 12px;
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .top-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .top-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+    }
+
+    .top-badge {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--primary);
+        background: #eef2ff;
+        border-radius: 999px;
+        padding: 4px 8px;
+    }
+
     .admin-list-card {
         background: #ffffff;
         border: 1px solid var(--border);
@@ -106,13 +231,23 @@
     }
     .btn-admin-outline:hover { background: var(--bg2); }
 
-    /* Заголовки секцій */
     .section-title {
         font-family: 'Plus Jakarta Sans', sans-serif;
         font-size: 20px;
         font-weight: 800;
         margin-bottom: 20px;
         margin-top: 48px;
+    }
+
+    @media (max-width: 1024px) {
+        .admin-stats { grid-template-columns: repeat(3, 1fr); }
+        .insights-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        .admin-stats { grid-template-columns: repeat(2, 1fr); }
+        .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .funnel-row { grid-template-columns: 1fr; }
     }
 </style>
 
@@ -149,6 +284,89 @@
         <div class="admin-stat-card">
             <div class="admin-stat-num">{{ users_count }}</div>
             <div class="admin-stat-desc">Студентів у системі</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-num">{{ analytics.approval_rate }}%</div>
+            <div class="admin-stat-desc">Рівень схвалення</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-num">{{ analytics.verified_companies }}</div>
+            <div class="admin-stat-desc">Верифікованих компаній</div>
+        </div>
+    </div>
+
+    <div class="insights-grid">
+        <div class="admin-panel">
+            <div class="panel-title">Динаміка за останні 30 днів</div>
+            <div class="panel-subtitle">Створені події у розрізі статусів</div>
+            <div class="trend-chart">
+                {% for day in analytics.trend %}
+                    <div class="trend-day" title="{{ day.day }}: A {{ day.approved }} · P {{ day.pending }} · R {{ day.rejected }}">
+                        <div class="trend-bar bar-approved" style="height: {{ ((day.approved / analytics.trend_max) * 110)|int }}px;"></div>
+                        <div class="trend-bar bar-pending" style="height: {{ ((day.pending / analytics.trend_max) * 110)|int }}px;"></div>
+                        <div class="trend-bar bar-rejected" style="height: {{ ((day.rejected / analytics.trend_max) * 110)|int }}px;"></div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="bar-legend">
+                <span><i class="legend-dot bar-approved"></i>Схвалено</span>
+                <span><i class="legend-dot bar-pending"></i>На модерації</span>
+                <span><i class="legend-dot bar-rejected"></i>Відхилено</span>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Воронка модерації</div>
+            <div class="panel-subtitle">Операційні показники контенту</div>
+            <div class="funnel-row">
+                <div class="funnel-item">
+                    <div class="funnel-label">Всього подій</div>
+                    <div class="funnel-value">{{ analytics.total_events }}</div>
+                </div>
+                <div class="funnel-item">
+                    <div class="funnel-label">Перевірено</div>
+                    <div class="funnel-value">{{ approved_count + rejected_count }}</div>
+                </div>
+                <div class="funnel-item">
+                    <div class="funnel-label">Старі pending (7+ днів)</div>
+                    <div class="funnel-value">{{ analytics.stale_pending_count }}</div>
+                </div>
+            </div>
+            <div style="margin-top: 14px; font-size: 13px; color: var(--text-muted);">
+                Частка верифікації компаній: <strong style="color: var(--text);">{{ analytics.verification_rate }}%</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="insights-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="admin-panel">
+            <div class="panel-title">Топ категорій</div>
+            <div class="panel-subtitle">За кількістю схвалених подій</div>
+            <div class="top-list">
+                {% for item in analytics.top_categories %}
+                    <div class="top-item">
+                        <span>{{ item.name }}</span>
+                        <span class="top-badge">{{ item.count }}</span>
+                    </div>
+                {% else %}
+                    <div class="top-item"><span>Даних поки недостатньо</span><span class="top-badge">0</span></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Топ компаній</div>
+            <div class="panel-subtitle">Найактивніші організатори подій</div>
+            <div class="top-list">
+                {% for item in analytics.top_companies %}
+                    <div class="top-item">
+                        <span>{{ item.name }}</span>
+                        <span class="top-badge">{{ item.count }}</span>
+                    </div>
+                {% else %}
+                    <div class="top-item"><span>Даних поки недостатньо</span><span class="top-badge">0</span></div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 

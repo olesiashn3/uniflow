@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request
 from flask_login import login_required, current_user
-from app import db
-from app.models import Favorite, Event
+from app.models import Event
 from datetime import date  # Імпорт для роботи з часом
+from app.services.favorites_service import get_user_favorites, toggle_favorite
 
 favorites = Blueprint('favorites', __name__)
 
@@ -10,8 +10,7 @@ favorites = Blueprint('favorites', __name__)
 @favorites.route('/')
 @login_required
 def index():
-    user_favorites = Favorite.query.filter_by(user_id=current_user.id) \
-        .order_by(Favorite.created_at.desc()).all()
+    user_favorites = get_user_favorites(current_user.id)
 
     # Додаємо now=date.today(), щоб Jinja знала, який сьогодні день
     return render_template('favorites/index.html',
@@ -22,23 +21,9 @@ def index():
 @favorites.route('/toggle/<int:event_id>', methods=['POST'])
 @login_required
 def toggle(event_id):
-    event = Event.query.get_or_404(event_id)
-    favorite = Favorite.query.filter_by(
-        user_id=current_user.id,
-        event_id=event_id
-    ).first()
-
-    if favorite:
-        db.session.delete(favorite)
-        db.session.commit()
-        is_favorite = False
-        message = 'Видалено з вибраного'
-    else:
-        new_favorite = Favorite(user_id=current_user.id, event_id=event_id)
-        db.session.add(new_favorite)
-        db.session.commit()
-        is_favorite = True
-        message = 'Додано до вибраного!'
+    Event.query.get_or_404(event_id)
+    is_favorite = toggle_favorite(current_user.id, event_id)
+    message = 'Додано до вибраного!' if is_favorite else 'Видалено з вибраного'
 
     # Перевірка на AJAX запит (для роботи JS без перезавантаження)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

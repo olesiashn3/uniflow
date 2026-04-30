@@ -1,11 +1,18 @@
 import os
 import secrets
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from app import db
-from app.models import Event, User, Company
+from app.models import Event, Company
 from app.forms import CompanyForm, AssignCompanyForm
 from PIL import Image
+from app.services.admin_service import (
+    get_dashboard_data,
+    approve_event,
+    reject_event,
+    create_company as create_company_record,
+    toggle_company_verification,
+    assign_user_to_company
+)
 
 admin = Blueprint('admin', __name__)
 
@@ -37,17 +44,14 @@ def save_logo(form_logo):
 @login_required
 @admin_required
 def dashboard():
-    pending = Event.query.filter_by(status='pending').order_by(Event.created_at.desc()).all()
-    approved = Event.query.filter_by(status='approved').count()
-    rejected = Event.query.filter_by(status='rejected').count()
-    users = User.query.count()
-    companies = Company.query.order_by(Company.created_at.desc()).all()
+    pending, approved, rejected, users, companies, analytics = get_dashboard_data()
     return render_template('admin/dashboard.html',
                            pending=pending,
                            approved_count=approved,
                            rejected_count=rejected,
                            users_count=users,
-                           companies=companies)
+                           companies=companies,
+                           analytics=analytics)
 
 
 @admin.route('/approve/<int:id>')
@@ -55,8 +59,7 @@ def dashboard():
 @admin_required
 def approve(id):
     event = Event.query.get_or_404(id)
-    event.status = 'approved'
-    db.session.commit()
+    approve_event(event)
     flash(f'Подію "{event.title}" схвалено!', 'success')
     return redirect(url_for('admin.dashboard'))
 
@@ -66,8 +69,7 @@ def approve(id):
 @admin_required
 def reject(id):
     event = Event.query.get_or_404(id)
-    event.status = 'rejected'
-    db.session.commit()
+    reject_event(event)
     flash(f'Подію "{event.title}" відхилено.', 'info')
     return redirect(url_for('admin.dashboard'))
 
@@ -82,14 +84,12 @@ def create_company():
         if form.logo.data:
             logo_file = save_logo(form.logo.data)
 
-        company = Company(
+        company = create_company_record(
             name=form.name.data,
             description=form.description.data,
-            website=form.website.data or None,
+            website=form.website.data,
             logo_file=logo_file
         )
-        db.session.add(company)
-        db.session.commit()
         flash(f'Організацію "{company.name}" створено!', 'success')
         return redirect(url_for('admin.dashboard'))
 
@@ -101,9 +101,8 @@ def create_company():
 @admin_required
 def verify_company(id):
     company = Company.query.get_or_404(id)
-    company.is_verified = not company.is_verified
-    db.session.commit()
-    status = 'верифіковано' if company.is_verified else 'верифікацію знято'
+    is_verified = toggle_company_verification(company)
+    status = 'верифіковано' if is_verified else 'верифікацію знято'
     flash(f'Організацію "{company.name}" {status}!', 'success')
     return redirect(url_for('admin.dashboard'))
 
@@ -116,14 +115,10 @@ def assign_company():
     form.company_id.choices = [(c.id, c.name) for c in Company.query.all()]
 
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user, company = assign_user_to_company(form.username.data, form.company_id.data)
         if not user:
             flash('Користувача не знайдено', 'danger')
             return redirect(url_for('admin.assign_company'))
-
-        company = Company.query.get(form.company_id.data)
-        user.company_id = company.id
-        db.session.commit()
         flash(f'Користувача "{user.username}" прив\'язано до "{company.name}"!', 'success')
         return redirect(url_for('admin.dashboard'))
 

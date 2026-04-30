@@ -1,7 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
-from app import db
-from app.models import User, Category  # Додали імпорт Category
+from app.services.auth_service import (
+    register_user,
+    authenticate_user,
+    complete_onboarding,
+    get_all_categories
+)
 from app.forms import LoginForm, RegisterForm
 
 auth = Blueprint('auth', __name__)
@@ -15,10 +19,11 @@ def register():
 
     form = RegisterForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
+        user = register_user(
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data
+        )
 
         # Одразу логінимо юзера після успішної реєстрації (так зручніше UX)
         login_user(user)
@@ -37,8 +42,8 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
+        user = authenticate_user(form.email.data, form.password.data)
+        if user:
             login_user(user)
             next_page = request.args.get('next')
 
@@ -66,24 +71,11 @@ def logout():
 @login_required
 def onboarding():
     if request.method == 'POST':
-        # Отримуємо список ID вибраних категорій з форми
         selected_category_ids = request.form.getlist('categories')
-
-        # Очищаємо старі інтереси (якщо юзер перепроходить)
-        current_user.interests = []
-
-        # Якщо щось вибрали — додаємо нові
-        if selected_category_ids:
-            categories = Category.query.filter(Category.id.in_(selected_category_ids)).all()
-            current_user.interests.extend(categories)
-
-        # Відмічаємо, що онбордінг пройдено
-        current_user.onboarding_done = True
-        db.session.commit()
+        complete_onboarding(current_user, selected_category_ids)
 
         flash('Твій простір налаштовано! 🎉', 'success')
         return redirect(url_for('events.index'))
 
-    # Для GET-запиту просто дістаємо всі категорії і показуємо сторінку
-    categories = Category.query.all()
+    categories = get_all_categories()
     return render_template('auth/onboarding.html', categories=categories)

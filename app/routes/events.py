@@ -3,10 +3,22 @@ import secrets
 from PIL import Image
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
-from app import db
-from app.models import Event, Category, Favorite, Question, Company
+from app.models import Event, Category, Company
 from app.forms import EventForm
-from datetime import date, timedelta, datetime
+from datetime import date
+from app.services.events_service import (
+    build_events_query,
+    create_event_from_form,
+    get_user_events,
+    get_user_subscriptions_data,
+    toggle_company_subscription,
+    create_question,
+    answer_question,
+    is_event_visible_for_user,
+    get_event_favorite_status,
+    get_event_questions,
+    get_user_favorite_event_ids
+)
 
 events = Blueprint('events', __name__)
 
@@ -35,60 +47,15 @@ def index():
     city_filter = request.args.get('city', '').strip()
     feed = request.args.get('feed', 'all')  # Параметр стрічки
 
-    query = Event.query.filter_by(status='approved')
-    query = query.filter((Event.deadline >= date.today()) | (Event.deadline == None))
-
-    # ==========================================
-    # ГІБРИДНА СИСТЕМА РЕКОМЕНДАЦІЙ (Для тебе)
-    # ==========================================
-    if feed == 'foryou' and current_user.is_authenticated:
-        # 1. Явні інтереси (з онбордінгу)
-        interest_ids = [category.id for category in current_user.interests]
-
-        # 2. Неявні інтереси (аналіз активності: що юзер додавав у Вибране)
-        favorites = current_user.favorites.all()
-        activity_cat_ids = [fav.event.category_id for fav in favorites if fav.event and fav.event.category_id]
-
-        # 3. Об'єднуємо та прибираємо дублікати
-        recommended_category_ids = list(set(interest_ids + activity_cat_ids))
-
-        # 4. Фільтруємо події за цими категоріями
-        if recommended_category_ids:
-            query = query.filter(Event.category_id.in_(recommended_category_ids))
-        else:
-            # Якщо інтересів немає, стрічка "Для тебе" має бути порожньою
-            query = query.filter(Event.id < 0)
-
-    # ==========================================
-    # СТРІЧКА ПІДПИСОК (Від підписок)
-    # ==========================================
-    elif feed == 'subscriptions' and current_user.is_authenticated:
-        # Беремо ID всіх компаній, на які підписаний юзер
-        subscribed_company_ids = [company.id for company in current_user.subscribed_companies]
-
-        if subscribed_company_ids:
-            # Фільтруємо події: показуємо тільки від цих компаній
-            query = query.filter(Event.company_id.in_(subscribed_company_ids))
-        else:
-            # Якщо підписок нуль — показуємо порожню стрічку
-            query = query.filter(Event.id < 0)
-
-    # ==========================================
-    # СТАНДАРТНІ ФІЛЬТРИ
-    # ==========================================
-    if search:
-        query = query.filter(Event.title.ilike(f'%{search}%'))
-    if category_id > 0:
-        query = query.filter(Event.category_id == category_id)
-    if format_type:
-        query = query.filter_by(format=format_type)
-    if city_filter:
-        query = query.filter(Event.city.ilike(f'%{city_filter}%'))
-
-    if sort == 'deadline':
-        query = query.filter(Event.deadline != None).order_by(Event.deadline.asc())
-    else:
-        query = query.order_by(Event.created_at.desc())
+    query = build_events_query(
+        search=search,
+        category_id=category_id,
+        sort=sort,
+        format_type=format_type,
+        city_filter=city_filter,
+        feed=feed,
+        user=current_user
+    )
 
     events_list = query.paginate(page=page, per_page=9, error_out=False)
 
@@ -102,7 +69,7 @@ def index():
 
     favorite_ids = []
     if current_user.is_authenticated:
-        favorite_ids = [f.event_id for f in current_user.favorites.all()]
+        favorite_ids = get_user_favorite_event_ids(current_user)
 
     return render_template('events/index.html',
                            events=events_list,
@@ -120,21 +87,15 @@ def index():
 @events.route('/event/<int:id>')
 def detail(id):
     event = Event.query.get_or_404(id)
-    if event.status != 'approved' and (
-            not current_user.is_authenticated or
-            current_user.role != 'admin' and current_user.id != event.author_id
-    ):
+    if not is_event_visible_for_user(event, current_user):
         flash('Подія не знайдена', 'danger')
         return redirect(url_for('events.index'))
 
     is_favorite = False
     if current_user.is_authenticated:
-        is_favorite = Favorite.query.filter_by(
-            user_id=current_user.id,
-            event_id=event.id
-        ).first() is not None
+        is_favorite = get_event_favorite_status(event.id, current_user.id)
 
-    questions = event.questions.order_by(Question.created_at.desc()).all()
+    questions = get_event_questions(event)
 
     return render_template('events/detail.html', event=event, is_favorite=is_favorite, questions=questions)
 
@@ -153,25 +114,7 @@ def add():
         picture_file = None
         if form.image.data:
             picture_file = save_picture(form.image.data)
-
-        selected_company = form.company_id.data if form.company_id.data != 0 else None
-
-        event = Event(
-            title=form.title.data,
-            description=form.description.data,
-            requirements=form.requirements.data,
-            deadline=form.deadline.data,
-            link=form.link.data,
-            format=form.format.data or None,
-            city=form.city.data or None,
-            image_file=picture_file,
-            category_id=form.category_id.data,
-            company_id=selected_company,
-            author_id=current_user.id,
-            status='pending'
-        )
-        db.session.add(event)
-        db.session.commit()
+        create_event_from_form(form, current_user.id, picture_file)
         flash('Подію додано! Очікує на перевірку адміністратором.', 'success')
         return redirect(url_for('events.index'))
 
@@ -181,20 +124,14 @@ def add():
 @events.route('/my-events')
 @login_required
 def my_events():
-    user_events = Event.query.filter_by(author_id=current_user.id) \
-        .order_by(Event.created_at.desc()).all()
+    user_events = get_user_events(current_user.id)
     return render_template('events/my_events.html', events=user_events)
 
 
 @events.route('/subscriptions')
 @login_required
 def subscriptions():
-    # 1. Ті, на кого юзер ВЖЕ підписаний
-    companies = current_user.subscribed_companies
-
-    # 2. Ті, на кого юзер ЩЕ НЕ підписаний (Беремо перші 4 для рекомендацій)
-    all_companies = Company.query.all()
-    suggested_companies = [c for c in all_companies if c not in companies][:4]
+    companies, suggested_companies = get_user_subscriptions_data(current_user)
 
     return render_template('events/subscriptions.html',
                            companies=companies,
@@ -205,13 +142,11 @@ def subscriptions():
 @login_required
 def toggle_subscribe(id):
     company = Company.query.get_or_404(id)
-    if current_user.is_subscribed(company):
-        current_user.subscribed_companies.remove(company)
-        flash(f'Ви відписалися від {company.name}', 'info')
-    else:
-        current_user.subscribed_companies.append(company)
+    is_subscribed = toggle_company_subscription(current_user, company)
+    if is_subscribed:
         flash(f'Ви підписалися на {company.name}', 'success')
-    db.session.commit()
+    else:
+        flash(f'Ви відписалися від {company.name}', 'info')
     # Повертаємо туди, звідки прийшов юзер
     return redirect(request.referrer or url_for('events.index'))
 
@@ -223,9 +158,7 @@ def ask_question(id):
     question_text = request.form.get('question')
 
     if question_text and len(question_text.strip()) > 0:
-        question = Question(text=question_text.strip(), user_id=current_user.id, event_id=event.id)
-        db.session.add(question)
-        db.session.commit()
+        create_question(event.id, current_user.id, question_text)
         flash('Ваше запитання надіслано!', 'success')
     else:
         flash('Запитання не може бути порожнім.', 'danger')
@@ -245,9 +178,7 @@ def answer_question(question_id):
 
     answer_text = request.form.get('answer')
     if answer_text and len(answer_text.strip()) > 0:
-        question.answer = answer_text.strip()
-        question.answered_at = datetime.utcnow()
-        db.session.commit()
+        answer_question(question, answer_text)
         flash('Відповідь успішно додано!', 'success')
     else:
         flash('Відповідь не може бути порожньою.', 'danger')
