@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Сповіщення | UniFlow{% endblock %}
+{% block content %}
+
+<style>
+    .notifications-wrapper {
+        max-width: 900px;
+        margin: 40px auto 80px auto;
+    }
+
+    .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .notifications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .notification-item {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px 18px;
+        background: #fff;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .notification-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .notification-item.unread {
+        border-color: rgba(99, 102, 241, 0.35);
+        background: #f8f9ff;
+    }
+
+    .notification-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+    }
+
+    .notification-message {
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .notification-meta {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+</style>
+
+<div class="notifications-wrapper">
+    <div class="notifications-header">
+        <div>
+            <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; margin: 0;">Скринька сповіщень</h1>
+            <p style="margin: 8px 0 0 0; color: var(--text-muted);">Нагадування для подій з вибраного та статуси модерації твоїх публікацій.</p>
+        </div>
+        <a href="{{ url_for('notifications.read_all') }}" class="btn btn-outline">Прочитати все</a>
+    </div>
+
+    {% if notifications %}
+        <div class="notifications-list">
+            {% for item in notifications %}
+                <div class="notification-item {% if not item.is_read %}unread{% endif %}">
+                    <h3 class="notification-title">{{ item.title }}</h3>
+                    <p class="notification-message">{{ item.message }}</p>
+                    <div class="notification-meta">
+                        <span>{{ item.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                        <a href="{{ url_for('notifications.read', notification_id=item.id) }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                            {% if item.event_id %}Відкрити подію{% else %}Позначити як прочитане{% endif %}
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state" style="padding: 70px 20px; border: 1px dashed var(--border); border-radius: 20px; background: #fff;">
+            <i class="ph ph-bell-ringing" style="font-size: 42px; color: #cbd5e1; margin-bottom: 12px;"></i>
+            <h3>Поки без сповіщень</h3>
+            <p style="color: var(--text-muted);">Коли з'являться нагадування або зміни статусу подій, вони будуть тут.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

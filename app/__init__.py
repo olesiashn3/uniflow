@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
+from flask_login import current_user
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -20,11 +21,25 @@ def create_app():
     from app.routes.admin import admin
     from app.routes.favorites import favorites
     from app.routes.profile import profile
+    from app.routes.notifications import notifications
 
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(events, url_prefix='/')
     app.register_blueprint(admin, url_prefix='/admin')
     app.register_blueprint(favorites, url_prefix='/favorites')
     app.register_blueprint(profile, url_prefix='/')
+    app.register_blueprint(notifications, url_prefix='/notifications')
+
+    @app.context_processor
+    def inject_notifications_badge():
+        if current_user.is_authenticated:
+            from app.services.notifications_service import (
+                get_unread_notifications_count,
+                generate_deadline_reminders_for_user
+            )
+            generate_deadline_reminders_for_user(current_user)
+            unread_count = get_unread_notifications_count(current_user.id)
+            return {'unread_notifications_count': unread_count}
+        return {'unread_notifications_count': 0}
 
     return app

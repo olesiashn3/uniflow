@@ -13,6 +13,10 @@ from app.services.admin_service import (
     toggle_company_verification,
     assign_user_to_company
 )
+from app.services.notifications_service import (
+    create_approval_notification,
+    create_rejection_notification
+)
 
 admin = Blueprint('admin', __name__)
 
@@ -60,6 +64,7 @@ def dashboard():
 def approve(id):
     event = Event.query.get_or_404(id)
     approve_event(event)
+    create_approval_notification(event)
     flash(f'Подію "{event.title}" схвалено!', 'success')
     return redirect(url_for('admin.dashboard'))
 
@@ -70,6 +75,7 @@ def approve(id):
 def reject(id):
     event = Event.query.get_or_404(id)
     reject_event(event)
+    create_rejection_notification(event)
     flash(f'Подію "{event.title}" відхилено.', 'info')
     return redirect(url_for('admin.dashboard'))
 

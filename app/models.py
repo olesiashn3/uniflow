@@ -36,6 +36,8 @@ class User(UserMixin, db.Model):
     events = db.relationship('Event', backref='author', lazy='dynamic')
     favorites = db.relationship('Favorite', backref='user', lazy='dynamic')
     questions = db.relationship('Question', backref='author', lazy='dynamic')
+    notifications = db.relationship('Notification', backref='user', lazy='dynamic',
+                                    cascade='all, delete-orphan')
     interests = db.relationship('Category', secondary=user_interests, lazy='subquery',
                                 backref=db.backref('interested_users', lazy=True))
     subscribed_companies = db.relationship('Company', secondary=subscriptions,
@@ -106,6 +108,7 @@ class Event(db.Model):
     favorites = db.relationship('Favorite', backref='event', lazy='dynamic')
     questions = db.relationship('Question', backref='event', lazy='dynamic',
                                 cascade='all, delete-orphan')
+    notifications = db.relationship('Notification', backref='event', lazy='dynamic')
 
     def __repr__(self):
         return f'<Event {self.title}>'
@@ -137,3 +140,20 @@ class Question(db.Model):
 
     def __repr__(self):
         return f'<Question {self.id} on Event {self.event_id}>'
+
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True, index=True)
+
+    def __repr__(self):
+        return f'<Notification {self.type} for User {self.user_id}>'
