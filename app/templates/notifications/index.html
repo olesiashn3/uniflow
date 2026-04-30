@@ -3,6 +3,11 @@
 {% block content %}
 
 <style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     @keyframes pulseSoft {
         0%, 100% { box-shadow: 0 0 0 rgba(79,70,229,0); }
         50% { box-shadow: 0 0 0 6px rgba(79,70,229,0.08); }
@@ -10,7 +15,7 @@
 
     .inbox-wrapper {
         max-width: 1200px;
-        margin: 40px auto 90px auto;
+        margin: 48px auto 100px auto;
     }
 
     .inbox-header {
@@ -18,7 +23,75 @@
         justify-content: space-between;
         align-items: flex-end;
         gap: 16px;
-        margin-bottom: 22px;
+        margin-bottom: 34px;
+        padding-bottom: 26px;
+        border-bottom: 1px solid var(--border);
+        animation: fadeInUp 0.55s ease forwards;
+    }
+
+    .laconic-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0f4ff;
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .laconic-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 38px;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .laconic-title span {
+        background: linear-gradient(135deg, var(--primary) 0%, #d946ef 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .laconic-desc {
+        font-size: 16px;
+        color: var(--text-muted);
+        max-width: 620px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .header-counter {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        padding: 10px 18px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        white-space: nowrap;
+    }
+
+    .header-counter strong {
+        color: var(--primary);
+        font-weight: 800;
+        font-size: 16px;
     }
 
     .inbox-layout {
@@ -47,7 +120,12 @@
         border-radius: 20px;
         padding: 18px;
         box-shadow: var(--shadow-sm);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
     }
+
+    .inbox-main .panel { animation-delay: 0.08s; }
+    .inbox-sidebar .panel { animation-delay: 0.16s; }
 
     .panel-title {
         display: flex;
@@ -77,7 +155,23 @@
         padding: 16px 18px;
         background: #fff;
         transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+        opacity: 0;
+        animation: fadeInUp 0.55s ease forwards;
     }
+
+    /* Stagger animation without inline styles (keeps template lint-clean) */
+    .notifications-list .notification-item:nth-child(1)  { animation-delay: 0.04s; }
+    .notifications-list .notification-item:nth-child(2)  { animation-delay: 0.08s; }
+    .notifications-list .notification-item:nth-child(3)  { animation-delay: 0.12s; }
+    .notifications-list .notification-item:nth-child(4)  { animation-delay: 0.16s; }
+    .notifications-list .notification-item:nth-child(5)  { animation-delay: 0.20s; }
+    .notifications-list .notification-item:nth-child(6)  { animation-delay: 0.24s; }
+    .notifications-list .notification-item:nth-child(7)  { animation-delay: 0.28s; }
+    .notifications-list .notification-item:nth-child(8)  { animation-delay: 0.32s; }
+    .notifications-list .notification-item:nth-child(9)  { animation-delay: 0.36s; }
+    .notifications-list .notification-item:nth-child(10) { animation-delay: 0.40s; }
+    .notifications-list .notification-item:nth-child(11) { animation-delay: 0.44s; }
+    .notifications-list .notification-item:nth-child(12) { animation-delay: 0.48s; }
 
     .notification-item:hover {
         transform: translateY(-2px);
@@ -129,6 +223,21 @@
         align-items: center;
         font-size: 12px;
         color: var(--text-muted);
+    }
+
+    .notification-link {
+        color: var(--primary);
+        font-weight: 800;
+        text-decoration: none;
+        transition: transform 0.2s ease, color 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .notification-link:hover {
+        transform: translateY(-1px);
+        color: var(--primary-dark);
     }
 
     .news-mini-list {
@@ -216,6 +325,107 @@
     }
     .org-center .btn:hover { background: #fff; transform: translateY(-1px); }
 
+    /* ===== WIDE NEWS STRIP (below inbox) ===== */
+    .below-wide {
+        margin-top: 18px;
+    }
+
+    .wide-panel {
+        border-radius: 24px;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .wide-panel-head {
+        padding: 18px 18px 12px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .wide-panel-body {
+        padding: 14px 18px 18px 18px;
+    }
+
+    /* "Newsletter" look (bigger cards like DOU) */
+    .news-wide-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .news-wide-card {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        align-items: start;
+        padding: 16px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: #fff;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+    }
+
+    .news-wide-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.05);
+        border-color: rgba(99, 102, 241, 0.22);
+    }
+
+    .news-wide-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.35;
+        margin: 0 0 6px 0;
+        letter-spacing: -0.2px;
+    }
+
+    .news-wide-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .news-wide-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--text);
+        max-width: 100%;
+    }
+
+    .news-wide-date {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+
+    .news-wide-body {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.65;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+        .news-wide-card { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 1000px) {
         .inbox-layout { grid-template-columns: 1fr; }
         .inbox-sidebar { position: static; top: auto; }
@@ -225,13 +435,19 @@
 <div class="inbox-wrapper">
     <div class="inbox-header">
         <div>
-            <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; margin: 0;">Центр управління</h1>
-            <p style="margin: 8px 0 0 0; color: var(--text-muted);">
-                Твої персональні сповіщення та пульс екосистеми в одному місці.
+            <span class="laconic-badge">
+                <i class="ph-fill ph-bell"></i> Оновлення та нагадування
+            </span>
+            <h1 class="laconic-title">Мої <span>Сповіщення</span></h1>
+            <p class="laconic-desc">
+                Тут зібрані системні повідомлення, нагадування про дедлайни та оновлення від організацій, на які ви підписані.
             </p>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <a href="{{ url_for('notifications.read_all') }}" class="btn btn-outline">Прочитати все</a>
+        <div class="header-actions">
+            <div class="header-counter">
+                <strong>{{ notifications|length }}</strong> у скриньці
+            </div>
+            <a href="{{ url_for('notifications.read_all') }}" class="btn btn-outline">Позначити всі як прочитані</a>
         </div>
     </div>
 
@@ -240,7 +456,7 @@
             <div class="panel" style="padding: 0; border-radius: 24px; overflow: hidden;">
                 <div style="padding: 18px 18px 12px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                     <div class="panel-title" style="margin: 0;">
-                        <h3 style="margin: 0;"><i class="ph ph-bell" style="color: var(--primary);"></i> Мій простір</h3>
+                        <h3 style="margin: 0;"><i class="ph ph-bell" style="color: var(--primary);"></i> Скринька</h3>
                     </div>
                     <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">
                         {{ notifications|length }} повідомлень
@@ -261,8 +477,12 @@
                                     <p class="notification-message">{{ item.message }}</p>
                                     <div class="notification-meta">
                                         <span>{{ item.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
-                                        <a href="{{ url_for('notifications.read', notification_id=item.id) }}" style="color: var(--primary); font-weight: 700; text-decoration: none;">
-                                            {% if item.event_id %}Відкрити подію{% else %}Позначити як прочитане{% endif %}
+                                        <a href="{{ url_for('notifications.read', notification_id=item.id) }}" class="notification-link">
+                                            {% if item.event_id %}
+                                                Відкрити подію <i class="ph ph-arrow-up-right"></i>
+                                            {% else %}
+                                                Позначити як прочитане <i class="ph ph-check"></i>
+                                            {% endif %}
                                         </a>
                                     </div>
                                 </div>
@@ -277,16 +497,58 @@
                     {% endif %}
                 </div>
             </div>
+
+            <div class="below-wide">
+                <div class="panel wide-panel">
+                    <div class="wide-panel-head">
+                        <div class="panel-title" style="margin: 0;">
+                            <h3 style="margin: 0;"><i class="ph ph-newspaper" style="color: var(--primary);"></i> Новини від твоїх підписок</h3>
+                        </div>
+                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 800;">оновлення</span>
+                    </div>
+
+                    <div class="wide-panel-body">
+                        {% if news_posts %}
+                            <div class="news-wide-grid">
+                                {% for post in news_posts %}
+                                    <div class="news-wide-card">
+                                        <div style="min-width: 0;">
+                                            <div class="news-wide-title">{{ post.title }}</div>
+                                            <div class="news-wide-meta">
+                                                <span class="news-wide-chip">
+                                                    <i class="ph ph-buildings"></i> {{ post.company.name }}
+                                                </span>
+                                                <span class="news-wide-date">{{ post.created_at.strftime('%d.%m.%Y') }}</span>
+                                            </div>
+                                            <p class="news-wide-body">{{ post.body }}</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div style="padding: 16px 14px; border-radius: 16px; background: var(--bg); border: 1px dashed var(--border);">
+                                <div style="font-weight: 800; margin-bottom: 6px;">Поки що без новин</div>
+                                <div style="color: var(--text-muted); font-size: 13px; line-height: 1.55;">
+                                    Додайте підписки на організації — і тут зʼявляться їхні анонси та оновлення.
+                                </div>
+                                <a href="{{ url_for('events.subscriptions') }}" class="btn btn-outline" style="margin-top: 12px; width: 100%; justify-content: center;">
+                                    Відкрити підписки
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
 
         <aside class="inbox-sidebar">
             {% if can_post_as_org %}
                 <div class="panel org-center">
                     <div class="panel-title" style="margin-bottom: 10px;">
-                        <h3 style="margin: 0;"><i class="ph ph-buildings"></i> Центр організації</h3>
+                        <h3 style="margin: 0;"><i class="ph ph-buildings"></i> Кабінет організації</h3>
                     </div>
                     <p style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.55;">
-                        Опублікуй короткий анонс — підписники побачать його у своєму “Пульсі”.
+                        Опублікуйте короткий анонс — підписники побачать його у своїх Сповіщеннях.
                     </p>
                     <a href="{{ url_for('notifications.create_post') }}" class="btn btn-primary btn-full" style="border-radius: 14px;">
                         + Створити допис
@@ -317,44 +579,6 @@
                     {% endif %}
                 </div>
             {% endif %}
-
-            <div class="panel">
-                <div class="panel-title">
-                    <h3><i class="ph ph-waveform" style="color: var(--primary);"></i> Пульс екосистеми</h3>
-                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 800;">оновлення</span>
-                </div>
-
-                {% if news_posts %}
-                    <div class="news-mini-list">
-                        {% for post in news_posts %}
-                            <div class="news-mini-card">
-                                <div class="news-mini-thumb">
-                                    {% if post.image_file %}
-                                        <img src="{{ url_for('static', filename='uploads/' + post.image_file) }}" alt="Обкладинка" onerror="this.style.display='none';">
-                                    {% endif %}
-                                </div>
-                                <div style="min-width: 0;">
-                                    <div class="news-mini-title">{{ post.title }}</div>
-                                    <div class="news-mini-meta">
-                                        {{ post.company.name }} • {{ post.created_at.strftime('%d.%m') }}
-                                    </div>
-                                    <p class="news-mini-body">{{ post.body }}</p>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div style="padding: 14px 14px; border-radius: 16px; background: var(--bg); border: 1px dashed var(--border);">
-                        <div style="font-weight: 800; margin-bottom: 6px;">Тут буде живо</div>
-                        <div style="color: var(--text-muted); font-size: 13px; line-height: 1.55;">
-                            Підпишись на кілька організацій — і тут зʼявляться їхні анонси.
-                        </div>
-                        <a href="{{ url_for('events.subscriptions') }}" class="btn btn-outline" style="margin-top: 12px; width: 100%; justify-content: center;">
-                            Відкрити підписки
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
         </aside>
     </div>
 </div>
