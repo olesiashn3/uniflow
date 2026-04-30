@@ -95,8 +95,19 @@
 
         {% if event.link %}
             <div style="margin-top: 32px;">
-                <a href="{{ event.link }}" target="_blank" class="btn btn-primary">
-                    Більше інформації / Реєстрація <i class="ph ph-arrow-up-right"></i>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <a href="{{ event.link }}" target="_blank" class="btn btn-primary">
+                        Більше інформації / Реєстрація <i class="ph ph-arrow-up-right"></i>
+                    </a>
+                    <a href="{{ google_calendar_url }}" target="_blank" class="btn btn-outline">
+                        <i class="ph ph-calendar-plus"></i> Додати в Google Calendar
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div style="margin-top: 32px;">
+                <a href="{{ google_calendar_url }}" target="_blank" class="btn btn-outline">
+                    <i class="ph ph-calendar-plus"></i> Додати в Google Calendar
                 </a>
             </div>
         {% endif %}

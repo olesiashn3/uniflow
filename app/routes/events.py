@@ -1,5 +1,6 @@
 import os
 import secrets
+import urllib.parse
 from PIL import Image
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
@@ -99,7 +100,44 @@ def detail(id):
 
     questions = get_event_questions(event)
 
-    return render_template('events/detail.html', event=event, is_favorite=is_favorite, questions=questions)
+    # Google Calendar link (all-day on deadline date; fallback to today)
+    base_url = "https://calendar.google.com/calendar/render"
+    start_date = (event.deadline or date.today())
+    end_date = start_date.toordinal() + 1
+    end_date = date.fromordinal(end_date)
+    dates = f"{start_date.strftime('%Y%m%d')}/{end_date.strftime('%Y%m%d')}"
+
+    details_parts = [event.description.strip()]
+    if event.link:
+        details_parts.append("")
+        details_parts.append(f"Посилання: {event.link}")
+    details = "\n".join([p for p in details_parts if p is not None])
+
+    location = None
+    if event.format == 'online':
+        location = 'Онлайн'
+    elif event.city:
+        location = event.city
+
+    params = {
+        "action": "TEMPLATE",
+        "text": event.title,
+        "dates": dates,
+        "details": details,
+        "ctz": "Europe/Kyiv",
+    }
+    if location:
+        params["location"] = location
+
+    google_calendar_url = f"{base_url}?{urllib.parse.urlencode(params, quote_via=urllib.parse.quote)}"
+
+    return render_template(
+        'events/detail.html',
+        event=event,
+        is_favorite=is_favorite,
+        questions=questions,
+        google_calendar_url=google_calendar_url,
+    )
 
 
 @events.route('/add', methods=['GET', 'POST'])
