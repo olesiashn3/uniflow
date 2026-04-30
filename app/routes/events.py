@@ -3,7 +3,9 @@ import secrets
 from PIL import Image
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
-from app.models import Event, Category, Company
+from sqlalchemy import text
+from app import db
+from app.models import Event, Category, Company, Favorite, Notification
 from app.forms import EventForm
 from datetime import date
 from app.services.events_service import (
@@ -126,6 +128,39 @@ def add():
 def my_events():
     user_events = get_user_events(current_user.id)
     return render_template('events/my_events.html', events=user_events)
+
+@events.route('/event/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_event(id):
+    event = Event.query.get_or_404(id)
+
+    if current_user.id != event.author_id and current_user.role != 'admin':
+        flash('У вас немає прав для видалення цієї події.', 'danger')
+        return redirect(request.referrer or url_for('events.my_events'))
+
+    # Cleanup dependent rows to avoid FK issues
+    Favorite.query.filter_by(event_id=event.id).delete(synchronize_session=False)
+    Notification.query.filter_by(event_id=event.id).delete(synchronize_session=False)
+    # If DB has extra child tables (e.g. MySQL event_images) not modeled in ORM, clear them too
+    try:
+        db.session.execute(text("DELETE FROM event_images WHERE event_id = :event_id"), {"event_id": event.id})
+    except Exception:
+        # Table might not exist in some environments
+        pass
+
+    # Remove uploaded cover if present (best-effort)
+    if event.image_file:
+        try:
+            picture_path = os.path.join(current_app.root_path, 'static', 'uploads', event.image_file)
+            if os.path.exists(picture_path):
+                os.remove(picture_path)
+        except Exception:
+            pass
+
+    db.session.delete(event)
+    db.session.commit()
+    flash('Подію видалено.', 'success')
+    return redirect(url_for('events.my_events'))
 
 
 @events.route('/subscriptions')

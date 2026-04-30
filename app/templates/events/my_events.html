@@ -230,7 +230,16 @@
                     {% endif %}
                 </div>
 
-                <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card" style="margin-top: 16px;">Переглянути</a>
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <a href="{{ url_for('events.detail', id=event.id) }}" class="btn btn-card" style="flex: 1;">Переглянути</a>
+
+                    <form action="{{ url_for('events.delete_event', id=event.id) }}" method="POST" style="margin: 0;"
+                          onsubmit="return confirm('Видалити подію назавжди? Це неможливо скасувати.');">
+                        <button type="submit" class="btn btn-danger" style="padding-left: 16px; padding-right: 16px;">
+                            <i class="ph ph-trash"></i> Видалити
+                        </button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         </div>

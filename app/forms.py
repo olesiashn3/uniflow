@@ -111,3 +111,20 @@ class AssignCompanyForm(FlaskForm):
     ])
     company_id = SelectField('Організація', coerce=int)
     submit = SubmitField('Прив\'язати')
+
+
+class NewsPostForm(FlaskForm):
+    title = StringField('Заголовок', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=4, max=200, message='Від 4 до 200 символів')
+    ])
+    body = TextAreaField('Текст допису', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=20, message='Мінімум 20 символів')
+    ])
+    image = FileField('Зображення (опціонально)', validators=[
+        Optional(),
+        FileAllowed(['jpg', 'png', 'jpeg', 'webp'], 'Дозволені лише зображення (JPG, PNG, WEBP)')
+    ])
+    submit = SubmitField('Опублікувати')
+

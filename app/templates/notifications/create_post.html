@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Створити допис | UniFlow{% endblock %}
+{% block content %}
+
+<div class="form-container" style="max-width: 760px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px;">
+        <div>
+            <h2 style="margin-bottom: 6px;">Новий допис</h2>
+            <p class="auth-subtitle" style="margin-bottom: 0;">
+                Короткий анонс, який побачать підписники у своїй скриньці.
+            </p>
+        </div>
+        <a href="{{ url_for('notifications.index') }}" class="btn btn-outline" style="padding: 10px 16px;">
+            <i class="ph ph-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label>{{ form.title.label.text }}</label>
+            {{ form.title(class="form-control", placeholder="Напр.: Відкрито набір на стажування") }}
+            {% for error in form.title.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.body.label.text }}</label>
+            {{ form.body(class="form-control", rows=6, placeholder="Розкажіть, що змінилося і що робити далі. Додайте короткий call-to-action.") }}
+            {% for error in form.body.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group" style="background: var(--bg); padding: 16px; border-radius: var(--radius-sm); border: 1px dashed var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <i class="ph ph-image" style="font-size: 20px; color: var(--primary);"></i>
+                {{ form.image.label.text }}
+            </label>
+            {{ form.image(class="form-control", style="border: none; background: transparent; padding: 0;") }}
+            {% for error in form.image.errors %}
+                <span class="error" style="display: block; margin-top: 8px;">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        {{ form.submit(class="btn btn-primary btn-full") }}
+    </form>
+</div>
+
+{% endblock %}

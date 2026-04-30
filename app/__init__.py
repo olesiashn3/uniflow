@@ -30,6 +30,11 @@ def create_app():
     app.register_blueprint(profile, url_prefix='/')
     app.register_blueprint(notifications, url_prefix='/notifications')
 
+    # Ensure new tables exist in dev (creates missing tables only).
+    with app.app_context():
+        from app import models  # noqa: F401
+        db.create_all()
+
     @app.context_processor
     def inject_notifications_badge():
         if current_user.is_authenticated:

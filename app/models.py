@@ -69,6 +69,8 @@ class Company(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     events = db.relationship('Event', backref='company', lazy='dynamic')
+    news_posts = db.relationship('NewsPost', backref='company', lazy='dynamic',
+                                 cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Company {self.name}>'
@@ -105,10 +107,12 @@ class Event(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
 
-    favorites = db.relationship('Favorite', backref='event', lazy='dynamic')
+    favorites = db.relationship('Favorite', backref='event', lazy='dynamic',
+                                cascade='all, delete-orphan')
     questions = db.relationship('Question', backref='event', lazy='dynamic',
                                 cascade='all, delete-orphan')
-    notifications = db.relationship('Notification', backref='event', lazy='dynamic')
+    notifications = db.relationship('Notification', backref='event', lazy='dynamic',
+                                    cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Event {self.title}>'
@@ -157,3 +161,19 @@ class Notification(db.Model):
 
     def __repr__(self):
         return f'<Notification {self.type} for User {self.user_id}>'
+
+
+class NewsPost(db.Model):
+    __tablename__ = 'news_posts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    image_file = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False, index=True)
+
+    def __repr__(self):
+        return f'<NewsPost {self.id} company={self.company_id}>'
+
