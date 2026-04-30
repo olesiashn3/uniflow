@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from sqlalchemy import text
 from app import db
-from app.models import Event, Category, Company, Favorite, Notification
+from app.models import Event, Category, Company, Favorite, Notification, Question
 from app.forms import EventForm
 from datetime import date
 from app.services.events_service import (
@@ -16,7 +16,7 @@ from app.services.events_service import (
     get_user_subscriptions_data,
     toggle_company_subscription,
     create_question,
-    answer_question,
+    answer_question as answer_question_service,
     is_event_visible_for_user,
     get_event_favorite_status,
     get_event_questions,
@@ -251,7 +251,7 @@ def answer_question(question_id):
 
     answer_text = request.form.get('answer')
     if answer_text and len(answer_text.strip()) > 0:
-        answer_question(question, answer_text)
+        answer_question_service(question, answer_text)
         flash('Відповідь успішно додано!', 'success')
     else:
         flash('Відповідь не може бути порожньою.', 'danger')

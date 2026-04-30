@@ -31,18 +31,18 @@ def create_app():
     app.register_blueprint(notifications, url_prefix='/notifications')
 
     # Ensure new tables exist in dev (creates missing tables only).
-    with app.app_context():
-        from app import models  # noqa: F401
-        db.create_all()
+    # Keep disabled in prod/staging by setting AUTO_CREATE_TABLES=0.
+    if app.config.get('AUTO_CREATE_TABLES', False):
+        with app.app_context():
+            from app import models  # noqa: F401
+            db.create_all()
 
     @app.context_processor
     def inject_notifications_badge():
         if current_user.is_authenticated:
             from app.services.notifications_service import (
                 get_unread_notifications_count,
-                generate_deadline_reminders_for_user
             )
-            generate_deadline_reminders_for_user(current_user)
             unread_count = get_unread_notifications_count(current_user.id)
             return {'unread_notifications_count': unread_count}
         return {'unread_notifications_count': 0}
