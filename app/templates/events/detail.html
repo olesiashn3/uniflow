@@ -3,13 +3,43 @@
 {% block title %}{{ event.title }} — UniFlow{% endblock %}
 
 {% block content %}
+<style>
+    .detail-banner {
+        margin: -48px -48px 32px -48px;
+        border-radius: var(--radius) var(--radius) 0 0;
+        overflow: hidden;
+        height: 240px;
+        position: relative;
+        background: linear-gradient(135deg, #dbeafe 0%, #e9d5ff 55%, #bae6fd 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .detail-banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        position: relative;
+        z-index: 2;
+    }
+
+    .detail-banner-fallback {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+    }
+</style>
 <div class="detail-container">
 
-    {% if event.image_file %}
-    <div style="margin: -48px -48px 32px -48px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; height: 320px; background-color: var(--bg); display: flex; align-items: center; justify-content: center;">
-        <img src="{{ url_for('static', filename='uploads/' + event.image_file) }}" alt="Банер події" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="detail-banner">
+        {% if event.image_file %}
+            <img src="{{ url_for('static', filename='uploads/' + event.image_file) }}" alt="Банер події" onerror="this.style.display='none';">
+        {% endif %}
+        <div class="detail-banner-fallback"></div>
     </div>
-    {% endif %}
 
     <div class="detail-header">
         <a href="{{ url_for('events.index') }}" class="back-link">

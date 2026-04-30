@@ -106,6 +106,29 @@
         opacity: 0;
     }
 
+    .event-cover {
+        height: 118px;
+        border-radius: 14px;
+        margin-bottom: 14px;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #e0e7ff 0%, #f5d0fe 55%, #bae6fd 100%);
+    }
+
+    .event-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .event-cover-fallback {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        backdrop-filter: blur(1px);
+    }
+
     /* Адаптивність для менших екранів */
     @media (max-width: 1000px) {
         .events-grid {
@@ -148,6 +171,13 @@
             {% set days_left = (event.deadline - now).days if event.deadline else None %}
 
             <div class="event-card">
+                <div class="event-cover">
+                    {% if event.image_file %}
+                        <img src="{{ url_for('static', filename='uploads/' + event.image_file) }}" alt="Обкладинка події" onerror="this.style.display='none';">
+                    {% endif %}
+                    <div class="event-cover-fallback"></div>
+                </div>
+
                 <div class="event-card-top">
                     <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
                         {{ event.category.name if event.category else 'Інше' }}
