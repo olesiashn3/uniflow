@@ -55,6 +55,7 @@
         background: linear-gradient(135deg, var(--primary) 0%, #d946ef 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .laconic-desc {
@@ -211,6 +212,7 @@
     }
 
     .notification-message {
+        font-family: 'DM Sans', sans-serif;
         color: var(--text-muted);
         margin: 0;
         line-height: 1.6;
@@ -324,6 +326,113 @@
         justify-content: center;
     }
     .org-center .btn:hover { background: #fff; transform: translateY(-1px); }
+
+    /* ===== Motivation mini-carousel (right sidebar) ===== */
+    .motivation-panel {
+        padding: 0;
+        overflow: hidden;
+        border-radius: 24px;
+        background: linear-gradient(135deg, var(--primary) 0%, #d946ef 100%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        position: relative;
+    }
+
+    .motivation-panel::before {
+        content: none;
+    }
+
+    .motivation-panel::after {
+        content: none;
+    }
+
+    .motivation-inner {
+        position: relative;
+        z-index: 1;
+        padding: 18px;
+    }
+
+    .motivation-carousel {
+        position: relative;
+        height: 190px;
+    }
+
+    .motivation-card {
+        position: absolute;
+        inset: 0;
+        border: none;
+        background: transparent;
+        border-radius: 20px;
+        padding: 18px 18px 16px 18px;
+        box-shadow: none;
+        opacity: 0;
+        transform: translateX(18px) scale(0.98);
+        transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .motivation-card.active {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        pointer-events: all;
+    }
+
+    .motivation-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.16);
+        color: rgba(255,255,255,0.95);
+        font-size: 26px;
+    }
+
+    .motivation-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.4px;
+        margin: 0;
+        line-height: 1.25;
+        color: #ffffff;
+    }
+
+    .motivation-text {
+        margin: 0;
+        font-family: 'DM Sans', sans-serif;
+        color: rgba(255,255,255,0.88);
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .motivation-dots {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        justify-content: center;
+    }
+
+    .motivation-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(17,24,39,0.10);
+        cursor: pointer;
+        transition: all 0.25s ease;
+        border: none;
+    }
+
+    .motivation-dot.active {
+        background: var(--primary);
+        width: 26px;
+        border-radius: 6px;
+    }
 
     /* ===== WIDE NEWS STRIP (below inbox) ===== */
     .below-wide {
@@ -579,7 +688,67 @@
                     {% endif %}
                 </div>
             {% endif %}
+
+            <div class="panel motivation-panel" id="motivationPanel">
+                <div class="motivation-inner">
+                    <div class="motivation-carousel" data-motivation-carousel>
+                        <div class="motivation-card active">
+                            <div class="motivation-icon"><i class="ph ph-target"></i></div>
+                            <div>
+                                <h3 class="motivation-title">Крок за кроком — до результату</h3>
+                                <p class="motivation-text">Зберігайте можливості, стежте за дедлайнами та повертайтесь до важливого в один клік.</p>
+                            </div>
+                        </div>
+
+                        <div class="motivation-card">
+                            <div class="motivation-icon"><i class="ph ph-calendar-check"></i></div>
+                            <div>
+                                <h3 class="motivation-title">Дедлайни під контролем</h3>
+                                <p class="motivation-text">Сповіщення допоможуть не пропустити ключові дати та зміни статусів ваших подій.</p>
+                            </div>
+                        </div>
+
+                        <div class="motivation-card">
+                            <div class="motivation-icon"><i class="ph ph-rocket-launch"></i></div>
+                            <div>
+                                <h3 class="motivation-title">Твоя стрічка — твій фокус</h3>
+                                <p class="motivation-text">Підписуйтесь на організації, які вам цікаві, і отримуйте їхні новини прямо тут.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="motivation-dots" data-motivation-dots>
+                        <button class="motivation-dot active" type="button" aria-label="Слайд 1"></button>
+                        <button class="motivation-dot" type="button" aria-label="Слайд 2"></button>
+                        <button class="motivation-dot" type="button" aria-label="Слайд 3"></button>
+                    </div>
+                </div>
+            </div>
         </aside>
     </div>
 </div>
+
+<script>
+    // Mini carousel for the notifications sidebar (scoped to this page)
+    (function () {
+        const root = document.getElementById('motivationPanel');
+        if (!root) return;
+
+        const cards = root.querySelectorAll('.motivation-card');
+        const dots = root.querySelectorAll('.motivation-dot');
+        if (!cards.length || !dots.length) return;
+
+        let current = 0;
+        function goTo(index) {
+            cards[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = index;
+            cards[current].classList.add('active');
+            dots[current].classList.add('active');
+        }
+
+        dots.forEach((dot, idx) => dot.addEventListener('click', () => goTo(idx)));
+        setInterval(() => goTo((current + 1) % cards.length), 4200);
+    })();
+</script>
 {% endblock %}
