@@ -14,6 +14,12 @@ subscriptions = db.Table('subscriptions',
     db.Column('company_id', db.Integer, db.ForeignKey('companies.id'), primary_key=True)
 )
 
+user_follows = db.Table(
+    'user_follows',
+    db.Column('follower_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('followed_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+)
+
 user_interests = db.Table('user_interests',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('category_id', db.Integer, db.ForeignKey('categories.id'), primary_key=True)
@@ -43,6 +49,22 @@ class User(UserMixin, db.Model):
     subscribed_companies = db.relationship('Company', secondary=subscriptions,
                                            foreign_keys=[subscriptions.c.user_id, subscriptions.c.company_id],
                                            backref=db.backref('subscribers', lazy='dynamic'))
+    profile = db.relationship(
+        'UserProfile',
+        uselist=False,
+        backref='user',
+        lazy='joined',
+        cascade='all, delete-orphan',
+    )
+
+    followed_users = db.relationship(
+        'User',
+        secondary=user_follows,
+        primaryjoin=(user_follows.c.follower_id == id),
+        secondaryjoin=(user_follows.c.followed_id == id),
+        backref=db.backref('followers', lazy='dynamic'),
+        lazy='dynamic',
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -52,6 +74,19 @@ class User(UserMixin, db.Model):
 
     def is_subscribed(self, company):
         return company in self.subscribed_companies
+
+    def is_following(self, other_user):
+        if not other_user:
+            return False
+        return self.followed_users.filter(user_follows.c.followed_id == other_user.id).count() > 0
+
+    def follow(self, other_user):
+        if other_user and other_user.id != self.id and not self.is_following(other_user):
+            self.followed_users.append(other_user)
+
+    def unfollow(self, other_user):
+        if other_user and self.is_following(other_user):
+            self.followed_users.remove(other_user)
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -210,3 +245,56 @@ class OrganizationRequest(db.Model):
     def __repr__(self):
         return f'<OrganizationRequest {self.id} status={self.status}>'
 
+
+class UserProfile(db.Model):
+    __tablename__ = 'user_profiles'
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+
+    full_name = db.Column(db.String(140), nullable=True)
+    headline = db.Column(db.String(160), nullable=True)  # one-liner under name
+    bio = db.Column(db.Text, nullable=True)
+    education = db.Column(db.String(200), nullable=True)
+    work = db.Column(db.String(200), nullable=True)
+    avatar_file = db.Column(db.String(255), nullable=True)
+
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f'<UserProfile user_id={self.user_id}>'
+
+
+class EventEditRequest(db.Model):
+    __tablename__ = 'event_edit_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False, index=True)
+    event = db.relationship('Event', foreign_keys=[event_id])
+
+    requester_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    requester = db.relationship('User', foreign_keys=[requester_id])
+
+    status = db.Column(db.String(12), default='pending', nullable=False)  # pending|approved|rejected
+    admin_note = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    decided_at = db.Column(db.DateTime, nullable=True)
+
+    decided_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    decided_by = db.relationship('User', foreign_keys=[decided_by_id])
+
+    # Proposed changes (copy of Event fields)
+    title = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    requirements = db.Column(db.Text, nullable=True)
+    deadline = db.Column(db.Date, nullable=True)
+    link = db.Column(db.String(500), nullable=True)
+    format = db.Column(db.String(10), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    image_file = db.Column(db.String(255), nullable=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
+
+    def __repr__(self):
+        return f'<EventEditRequest {self.id} event_id={self.event_id} status={self.status}>'

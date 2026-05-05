@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from flask_login import login_required, current_user
 from app import db
-from app.models import Event, Company, OrganizationRequest, User
+from app.models import Event, Company, OrganizationRequest, User, EventEditRequest
 from app.forms import CompanyForm, AssignCompanyForm
 from PIL import Image
 from app.services.admin_service import (
@@ -14,7 +14,9 @@ from app.services.admin_service import (
     reject_event,
     create_company as create_company_record,
     toggle_company_verification,
-    assign_user_to_company
+    assign_user_to_company,
+    approve_event_edit_request,
+    reject_event_edit_request,
 )
 from app.services.notifications_service import (
     create_approval_notification,
@@ -51,10 +53,11 @@ def save_logo(form_logo):
 @login_required
 @admin_required
 def dashboard():
-    pending, approved, rejected, users, companies, analytics = get_dashboard_data()
+    pending, pending_edits, approved, rejected, users, companies, analytics = get_dashboard_data()
     pending_org_requests_count = OrganizationRequest.query.filter_by(status='pending').count()
     return render_template('admin/dashboard.html',
                            pending=pending,
+                           pending_edits=pending_edits,
                            approved_count=approved,
                            rejected_count=rejected,
                            users_count=users,
@@ -82,6 +85,39 @@ def reject(id):
     reject_event(event)
     create_rejection_notification(event)
     flash(f'Подію "{event.title}" відхилено.', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin.route('/event-edits/<int:request_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_event_edit(request_id):
+    req = EventEditRequest.query.get_or_404(request_id)
+    if req.status != 'pending':
+        flash('Цей запит вже оброблено.', 'info')
+        return redirect(url_for('admin.dashboard'))
+
+    event = approve_event_edit_request(req, current_user)
+    if not event:
+        flash('Подію не знайдено. Неможливо застосувати зміни.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    flash('Зміни до події застосовано та схвалено.', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin.route('/event-edits/<int:request_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_event_edit(request_id):
+    req = EventEditRequest.query.get_or_404(request_id)
+    if req.status != 'pending':
+        flash('Цей запит вже оброблено.', 'info')
+        return redirect(url_for('admin.dashboard'))
+
+    note = (request.form.get('admin_note') or '').strip()
+    reject_event_edit_request(req, current_user, admin_note=note)
+    flash('Запит на редагування відхилено.', 'info')
     return redirect(url_for('admin.dashboard'))
 
 

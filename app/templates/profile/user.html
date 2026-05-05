@@ -4,14 +4,18 @@
 
 <div style="max-width: 900px; margin: 48px auto;">
 
-    <div style="background: var(--bg2); border-radius: var(--radius); padding: 40px; border: 1px solid var(--border); margin-bottom: 32px; display: flex; align-items: center; gap: 32px;">
-        <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: #fff; flex-shrink: 0;">
-            {{ user.username[0]|upper }}
+    <div style="background: var(--bg2); border-radius: var(--radius); padding: 40px; border: 1px solid var(--border); margin-bottom: 22px; display: flex; align-items: center; gap: 24px;">
+        <div style="width: 86px; height: 86px; background: #eef2ff; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: var(--primary); flex-shrink: 0; overflow:hidden;">
+            {% if profile and profile.avatar_file %}
+                <img src="{{ url_for('static', filename='uploads/' + profile.avatar_file) }}" style="width:100%; height:100%; object-fit: cover;" alt="avatar">
+            {% else %}
+                {{ user.username[0]|upper }}
+            {% endif %}
         </div>
         <div style="flex: 1;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                 <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">
-                    {{ user.username }}
+                    {{ (profile.full_name if profile and profile.full_name else user.username) }}
                 </h1>
                 {% if user.company and user.company.is_verified %}
                     <span title="Верифікована організація" style="color: #1d9bf0; font-size: 22px;">
@@ -19,10 +23,23 @@
                     </span>
                 {% endif %}
             </div>
+            {% if profile and profile.headline %}
+                <div style="color: var(--text); font-weight: 700; margin-bottom: 6px;">
+                    {{ profile.headline }}
+                </div>
+            {% endif %}
             {% if user.company %}
                 <p style="color: var(--primary); font-weight: 600; font-size: 15px; margin-bottom: 8px;">
                     {{ user.company.name }}
                 </p>
+            {% else %}
+                {% if profile and (profile.education or profile.work) %}
+                    <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 6px;">
+                        {% if profile.education %}<span><i class="ph ph-graduation-cap"></i> {{ profile.education }}</span>{% endif %}
+                        {% if profile.education and profile.work %} · {% endif %}
+                        {% if profile.work %}<span><i class="ph ph-briefcase"></i> {{ profile.work }}</span>{% endif %}
+                    </div>
+                {% endif %}
             {% endif %}
             <p style="color: var(--text-muted); font-size: 14px;">
                 На платформі з {{ user.created_at.strftime('%B %Y') }}
@@ -33,6 +50,27 @@
             <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">публікацій</div>
         </div>
     </div>
+
+    {% if current_user.is_authenticated and current_user.id != user.id %}
+        <div style="display:flex; gap: 10px; margin-bottom: 26px;">
+            <form action="{{ url_for('profile.toggle_follow_user', username=user.username) }}" method="POST" style="margin: 0;">
+                <button type="submit" class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %}">
+                    {% if is_following %}
+                        Відписатись
+                    {% else %}
+                        Підписатись
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if profile and profile.bio %}
+        <div style="background: #fff; border-radius: var(--radius); padding: 22px; border: 1px solid var(--border); margin-bottom: 28px;">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 900; margin-bottom: 10px;">Про мене</div>
+            <div style="color: var(--text); line-height: 1.7; white-space: pre-line;">{{ profile.bio }}</div>
+        </div>
+    {% endif %}
 
     {% if user.company %}
     <div style="background: var(--bg2); border-radius: var(--radius); padding: 28px; border: 1px solid var(--border); margin-bottom: 32px;">

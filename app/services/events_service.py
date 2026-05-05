@@ -1,7 +1,8 @@
 from datetime import date, datetime
 
 from app import db
-from app.models import Event, Favorite, Question, Company
+from app.models import Event, Favorite, Question, Company, User
+from sqlalchemy import or_
 
 
 def build_events_query(search='', category_id=0, sort='new', format_type='', city_filter='', feed='all', user=None):
@@ -20,8 +21,20 @@ def build_events_query(search='', category_id=0, sort='new', format_type='', cit
             query = query.filter(Event.id < 0)
     elif feed == 'subscriptions' and user and user.is_authenticated:
         subscribed_company_ids = [company.id for company in user.subscribed_companies]
-        if subscribed_company_ids:
-            query = query.filter(Event.company_id.in_(subscribed_company_ids))
+        followed_user_ids = [u.id for u in user.followed_users.all()]
+
+        if subscribed_company_ids or followed_user_ids:
+            parts = []
+            if subscribed_company_ids:
+                parts.append(Event.company_id.in_(subscribed_company_ids))
+            if followed_user_ids:
+                parts.append(Event.author_id.in_(followed_user_ids))
+
+            # SQLAlchemy OR across parts
+            if len(parts) == 1:
+                query = query.filter(parts[0])
+            else:
+                query = query.filter(or_(*parts))
         else:
             query = query.filter(Event.id < 0)
 
@@ -71,7 +84,10 @@ def get_user_subscriptions_data(user):
     companies = user.subscribed_companies
     all_companies = Company.query.all()
     suggested_companies = [c for c in all_companies if c not in companies][:4]
-    return companies, suggested_companies
+    followed_users = user.followed_users.all()
+    suggested_users = User.query.filter(User.id != user.id).all()
+    suggested_users = [u for u in suggested_users if u not in followed_users][:6]
+    return companies, suggested_companies, followed_users, suggested_users
 
 
 def toggle_company_subscription(user, company):

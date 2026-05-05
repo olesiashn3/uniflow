@@ -378,6 +378,41 @@
         </div>
     </div>
 
+    {% if pending_edits %}
+        <h2 class="section-title">Редагування подій (очікують)</h2>
+        <div>
+            {% for req in pending_edits %}
+            <div class="admin-list-card" style="align-items: flex-start;">
+                <div style="flex: 1; padding-right: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 6px;">
+                        {{ req.title or req.event.title }}
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">
+                        Запит на редагування від <strong>{{ req.requester.username }}</strong> для події
+                        <a href="{{ url_for('events.detail', id=req.event.id) }}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 700;">
+                            #{{ req.event.id }}
+                        </a>
+                    </p>
+                    <div style="font-size: 13px; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
+                        <span><i class="ph ph-calendar"></i> {{ req.created_at.strftime('%d.%m.%Y') }}</span>
+                        <span><i class="ph ph-user"></i> Автор події: {{ req.event.author.username }}</span>
+                        <span><i class="ph ph-tag"></i> {{ req.event.category.name if req.event.category else 'Інше' }}</span>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; min-width: 160px;">
+                    <form action="{{ url_for('admin.approve_event_edit', request_id=req.id) }}" method="POST" style="margin: 0;">
+                        <button type="submit" class="btn-admin btn-admin-dark" style="justify-content:center; width:100%;">Схвалити зміни</button>
+                    </form>
+                    <form action="{{ url_for('admin.reject_event_edit', request_id=req.id) }}" method="POST" style="margin: 0;">
+                        <input type="hidden" name="admin_note" value="">
+                        <button type="submit" class="btn-admin btn-admin-outline" style="justify-content:center; width:100%;">Відхилити</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {% if pending %}
         <h2 class="section-title">Потребують уваги</h2>
         <div>

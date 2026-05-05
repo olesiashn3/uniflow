@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Мій профіль — UniFlow{% endblock %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 40px auto 80px auto;">
+    <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px;">
+        <div>
+            <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 30px; font-weight: 900; letter-spacing: -0.5px; margin: 0;">
+                Мій профіль
+            </h1>
+            <div style="color: var(--text-muted); margin-top: 6px;">
+                Заповни профіль — він буде видимий іншим, коли вони відкривають твій профіль як організатора події.
+            </div>
+        </div>
+        <a class="btn btn-outline" href="{{ url_for('profile.user_profile', username=current_user.username) }}">
+            Переглянути як інші
+        </a>
+    </div>
+
+    <div style="display:flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 22px 0;">
+        <a href="{{ url_for('profile.me', tab='profile') }}" class="btn {% if tab == 'profile' %}btn-primary{% else %}btn-outline{% endif %}">Профіль</a>
+        <a href="{{ url_for('profile.me', tab='events') }}" class="btn {% if tab == 'events' %}btn-primary{% else %}btn-outline{% endif %}">Мої події</a>
+        <a href="{{ url_for('profile.me', tab='org') }}" class="btn {% if tab == 'org' %}btn-primary{% else %}btn-outline{% endif %}">Моя організація</a>
+        <a href="{{ url_for('profile.me', tab='security') }}" class="btn {% if tab == 'security' %}btn-primary{% else %}btn-outline{% endif %}">Безпека</a>
+    </div>
+
+    {% if tab == 'profile' %}
+        <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px;">
+            <form method="POST" enctype="multipart/form-data">
+                {{ profile_form.hidden_tag() }}
+
+                <div style="display:flex; gap: 18px; align-items: center; margin-bottom: 18px;">
+                    <div style="width: 84px; height: 84px; border-radius: 20px; overflow:hidden; background: #eef2ff; display:flex; align-items:center; justify-content:center; font-weight:900; color: var(--primary); font-size: 26px;">
+                        {% if profile.avatar_file %}
+                            <img src="{{ url_for('static', filename='uploads/' + profile.avatar_file) }}" style="width:100%; height:100%; object-fit: cover;" alt="avatar">
+                        {% else %}
+                            {{ current_user.username[0]|upper }}
+                        {% endif %}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight: 800; font-size: 16px;">Аватар</div>
+                        <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">PNG/JPG/WEBP. Квадратне фото виглядає найкраще.</div>
+                        <div style="margin-top: 10px;">
+                            {{ profile_form.avatar(class="form-control") }}
+                            {% for e in profile_form.avatar.errors %}
+                                <div style="color: var(--danger); font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">{{ profile_form.full_name.label.text }}</label>
+                    {{ profile_form.full_name(class="form-control", placeholder="Напр.: Олеся Іваненко") }}
+                    {% for e in profile_form.full_name.errors %}
+                        <div class="text-danger" style="font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">{{ profile_form.headline.label.text }}</label>
+                    {{ profile_form.headline(class="form-control", placeholder="Напр.: Student • Product • Data") }}
+                    {% for e in profile_form.headline.errors %}
+                        <div class="text-danger" style="font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">{{ profile_form.bio.label.text }}</label>
+                    {{ profile_form.bio(class="form-control", rows="6", placeholder="Коротко про тебе, інтереси, що шукаєш...") }}
+                    {% for e in profile_form.bio.errors %}
+                        <div class="text-danger" style="font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">{{ profile_form.education.label.text }}</label>
+                        {{ profile_form.education(class="form-control", placeholder="Напр.: КПІ • Computer Science") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ profile_form.work.label.text }}</label>
+                        {{ profile_form.work(class="form-control", placeholder="Напр.: Internship • Company") }}
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    {{ profile_form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    {% elif tab == 'events' %}
+        <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px;">
+            <div style="display:flex; justify-content: space-between; align-items:center; gap: 12px; margin-bottom: 14px;">
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 900;">Мої події</div>
+                <a class="btn btn-primary" href="{{ url_for('events.add') }}">+ Додати</a>
+            </div>
+            {% if my_events %}
+                <div class="events-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    {% for event in my_events %}
+                        <div class="event-card">
+                            <div class="event-card-top" style="display:flex; justify-content: space-between; align-items:center;">
+                                <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                                    {{ event.category.name if event.category else 'Інше' }}
+                                </span>
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">
+                                    {{ 'Активна' if event.status == 'approved' else ('На перевірці' if event.status == 'pending' else 'Відхилено') }}
+                                </span>
+                            </div>
+                            <h3 class="event-title" style="margin-top: 10px;">
+                                <a href="{{ url_for('events.detail', id=event.id) }}">{{ event.title }}</a>
+                            </h3>
+                            <p class="event-desc">{{ event.description[:120] }}...</p>
+                            <div style="display:flex; gap: 10px; margin-top: 14px;">
+                                <a class="btn btn-card" style="flex:1;" href="{{ url_for('events.detail', id=event.id) }}">Переглянути</a>
+                                <a class="btn btn-outline" href="{{ url_for('events.edit_event', id=event.id) }}">Редагувати</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-cat" style="font-size: 48px;">📭</div>
+                    <h3>Поки немає подій</h3>
+                    <p>Створи першу подію або можливість для студентів.</p>
+                </div>
+            {% endif %}
+        </div>
+    {% elif tab == 'org' %}
+        <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px;">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 900; margin-bottom: 10px;">Моя організація</div>
+
+            {% if current_user.company %}
+                <div style="display:flex; align-items:center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                    <div>
+                        <div style="font-weight: 900; font-size: 16px;">{{ current_user.company.name }}</div>
+                        <div style="color: var(--text-muted); margin-top: 6px;">
+                            Статус: {% if current_user.company.is_verified %}<span style="color:#166534; font-weight: 800;">верифікована</span>{% else %}<span style="color:#92400e; font-weight: 800;">не верифікована</span>{% endif %}
+                        </div>
+                    </div>
+                    <a class="btn btn-outline" href="{{ url_for('profile.company_profile', id=current_user.company.id) }}">Перейти до сторінки</a>
+                </div>
+            {% else %}
+                {% if org_request and org_request.status == 'pending' %}
+                    <div style="border:1px solid var(--border); border-radius: 14px; padding: 16px; background: #fff;">
+                        <div style="font-weight: 900;">Заявка на організацію на розгляді</div>
+                        <div style="color: var(--text-muted); margin-top: 6px;">
+                            {{ org_request.company_name }} • подано {{ org_request.created_at.strftime('%d.%m.%Y') }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div style="color: var(--text-muted); margin-bottom: 14px;">
+                        У тебе ще немає організації. Можна подати заявку на створення.
+                    </div>
+                    <a class="btn btn-primary" href="{{ url_for('organizations.request_create') }}">Подати заявку</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% else %}
+        <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px;">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 900; margin-bottom: 10px;">Безпека</div>
+            <form method="POST">
+                {{ password_form.hidden_tag() }}
+                <div class="form-group">
+                    <label class="form-label">{{ password_form.current_password.label.text }}</label>
+                    {{ password_form.current_password(class="form-control") }}
+                    {% for e in password_form.current_password.errors %}
+                        <div class="text-danger" style="font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ password_form.new_password.label.text }}</label>
+                    {{ password_form.new_password(class="form-control") }}
+                    {% for e in password_form.new_password.errors %}
+                        <div class="text-danger" style="font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ password_form.new_password2.label.text }}</label>
+                    {{ password_form.new_password2(class="form-control") }}
+                    {% for e in password_form.new_password2.errors %}
+                        <div class="text-danger" style="font-size: 13px; margin-top: 6px;">{{ e }}</div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top: 16px;">
+                    {{ password_form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

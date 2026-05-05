@@ -1,11 +1,12 @@
 from datetime import date, timedelta, datetime
 
 from app import db
-from app.models import Event, User, Company, Category
+from app.models import Event, User, Company, Category, EventEditRequest
 
 
 def get_dashboard_data():
     pending = Event.query.filter_by(status='pending').order_by(Event.created_at.desc()).all()
+    pending_edits = EventEditRequest.query.filter_by(status='pending').order_by(EventEditRequest.created_at.desc()).all()
     approved = Event.query.filter_by(status='approved').count()
     rejected = Event.query.filter_by(status='rejected').count()
     users = User.query.count()
@@ -92,7 +93,7 @@ def get_dashboard_data():
         'top_companies': top_companies,
     }
 
-    return pending, approved, rejected, users, companies, analytics
+    return pending, pending_edits, approved, rejected, users, companies, analytics
 
 
 def approve_event(event):
@@ -103,6 +104,44 @@ def approve_event(event):
 def reject_event(event):
     event.status = 'rejected'
     db.session.commit()
+
+
+def approve_event_edit_request(req: EventEditRequest, decided_by: User):
+    event = Event.query.get(req.event_id)
+    if not event:
+        return None
+
+    # Apply proposed fields (only if provided)
+    if req.title is not None:
+        event.title = req.title
+    if req.description is not None:
+        event.description = req.description
+    if req.requirements is not None:
+        event.requirements = req.requirements
+    event.deadline = req.deadline
+    event.link = req.link
+    event.format = req.format
+    event.city = req.city
+    if req.image_file is not None:
+        event.image_file = req.image_file
+    event.category_id = req.category_id
+    event.company_id = req.company_id
+
+    req.status = 'approved'
+    req.decided_at = datetime.utcnow()
+    req.decided_by_id = decided_by.id
+
+    db.session.commit()
+    return event
+
+
+def reject_event_edit_request(req: EventEditRequest, decided_by: User, admin_note: str | None = None):
+    req.status = 'rejected'
+    req.admin_note = (admin_note or '').strip() or None
+    req.decided_at = datetime.utcnow()
+    req.decided_by_id = decided_by.id
+    db.session.commit()
+    return req
 
 
 def create_company(name, description=None, website=None, logo_file=None):

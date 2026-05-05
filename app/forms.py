@@ -148,3 +148,59 @@ class OrganizationRequestForm(FlaskForm):
     ])
     submit = SubmitField('Надіслати на розгляд')
 
+
+class UserProfileForm(FlaskForm):
+    full_name = StringField('Імʼя та прізвище', validators=[Optional(), Length(max=140)])
+    headline = StringField('Заголовок', validators=[Optional(), Length(max=160)])
+    bio = TextAreaField('Про себе', validators=[Optional(), Length(max=4000)])
+    education = StringField('Навчання', validators=[Optional(), Length(max=200)])
+    work = StringField('Робота', validators=[Optional(), Length(max=200)])
+    avatar = FileField('Аватар', validators=[
+        Optional(),
+        FileAllowed(['jpg', 'jpeg', 'png', 'webp'], 'Тільки зображення!')
+    ])
+    submit = SubmitField('Зберегти профіль')
+
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField('Поточний пароль', validators=[DataRequired(message='Це поле обовʼязкове')])
+    new_password = PasswordField('Новий пароль', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=6, message='Мінімум 6 символів')
+    ])
+    new_password2 = PasswordField('Повторіть новий пароль', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        EqualTo('new_password', message='Паролі не співпадають')
+    ])
+    submit = SubmitField('Змінити пароль')
+
+
+class EventEditForm(FlaskForm):
+    title = StringField('Назва події', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=5, max=200, message='Від 5 до 200 символів')
+    ])
+    description = TextAreaField('Опис', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=20, message='Мінімум 20 символів')
+    ])
+    requirements = TextAreaField('Вимоги', validators=[Optional()])
+    deadline = DateField('Дедлайн', validators=[Optional()])
+    link = StringField('Посилання (Реєстрація / Деталі)', validators=[
+        Optional(),
+        URL(message='Введіть коректне посилання (почніть з http:// або https://)')
+    ])
+    format = SelectField('Формат', choices=[
+        ('', 'Не вказано'),
+        ('online', 'Онлайн'),
+        ('offline', 'Офлайн')
+    ], validators=[Optional()])
+    city = StringField('Місто', validators=[Optional(), Length(max=100)])
+    image = FileField('Обкладинка події (банер)', validators=[
+        Optional(),
+        FileAllowed(['jpg', 'png', 'jpeg', 'webp'], 'Дозволені лише зображення')
+    ])
+    category_id = SelectField('Категорія', coerce=int)
+    company_id = SelectField('Публікувати від імені', coerce=int, validators=[Optional()])
+    submit = SubmitField('Надіслати на перевірку')
+

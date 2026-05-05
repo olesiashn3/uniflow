@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Редагувати подію — UniFlow{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Редагувати можливість</h2>
+    <p class="auth-subtitle">Після збереження зміни підуть на перевірку модератором і зʼявляться після схвалення</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label>{{ form.title.label.text }}</label>
+            {{ form.title(class="form-control") }}
+            {% for error in form.title.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>{{ form.category_id.label.text }}</label>
+                {{ form.category_id(class="form-control dropdown") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.deadline.label.text }}</label>
+                {{ form.deadline(class="form-control") }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>{{ form.format.label.text }}</label>
+                {{ form.format(class="form-control dropdown") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.city.label.text }}</label>
+                {{ form.city(class="form-control") }}
+                {% for error in form.city.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.description.label.text }}</label>
+            {{ form.description(class="form-control", rows=5) }}
+            {% for error in form.description.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.requirements.label.text }}</label>
+            {{ form.requirements(class="form-control", rows=3) }}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.link.label.text }}</label>
+            {{ form.link(class="form-control", placeholder="https://...") }}
+            {% for error in form.link.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group" style="background: var(--bg); padding: 16px; border-radius: var(--radius-sm); border: 1px dashed var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <i class="ph ph-image" style="font-size: 20px; color: var(--primary);"></i>
+                {{ form.image.label.text }}
+            </label>
+            {{ form.image(class="form-control", style="border: none; background: transparent; padding: 0;") }}
+            {% for error in form.image.errors %}
+                <span class="error" style="display: block; margin-top: 8px;">{{ error }}</span>
+            {% endfor %}
+            {% if event.image_file %}
+                <div style="color: var(--text-muted); font-size: 13px; margin-top: 10px;">
+                    Поточна обкладинка збережеться, якщо не завантажувати нову.
+                </div>
+            {% endif %}
+        </div>
+
+        {% if current_user.company %}
+        <div style="background: var(--glass-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px dashed var(--primary); margin-bottom: 24px;">
+            <label style="font-weight: 700; color: var(--primary); margin-bottom: 8px; display: block;">
+                <i class="ph-fill ph-buildings"></i> {{ form.company_id.label.text }}
+            </label>
+            {{ form.company_id(class="form-control dropdown", style="background: white;") }}
+        </div>
+        {% else %}
+            <div style="display: none;">
+                {{ form.company_id(class="form-control") }}
+            </div>
+        {% endif %}
+
+        {{ form.submit(class="btn btn-primary btn-full") }}
+    </form>
+</div>
+{% endblock %}
+

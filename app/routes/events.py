@@ -6,8 +6,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from sqlalchemy import text
 from app import db
-from app.models import Event, Category, Company, Favorite, Notification, Question
-from app.forms import EventForm
+from app.models import Event, Category, Company, Favorite, Notification, Question, EventEditRequest
+from app.forms import EventForm, EventEditForm
 from datetime import date
 from app.services.events_service import (
     build_events_query,
@@ -164,8 +164,64 @@ def add():
 @events.route('/my-events')
 @login_required
 def my_events():
-    user_events = get_user_events(current_user.id)
-    return render_template('events/my_events.html', events=user_events)
+    # Moved into "Мій профіль" (cabinet) to keep top nav clean.
+    return redirect(url_for('profile.me', tab='events'))
+
+
+@events.route('/event/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_event(id):
+    event = Event.query.get_or_404(id)
+    if current_user.id != event.author_id and current_user.role != 'admin':
+        flash('У вас немає прав для редагування цієї події.', 'danger')
+        return redirect(url_for('events.detail', id=id))
+
+    form = EventEditForm()
+    form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
+    form.company_id.choices = [(0, f"Особисто ({current_user.username})")]
+    if current_user.company:
+        form.company_id.choices.append((current_user.company.id, f"Від імені: {current_user.company.name}"))
+
+    if request.method == 'GET':
+        form.title.data = event.title
+        form.description.data = event.description
+        form.requirements.data = event.requirements
+        form.deadline.data = event.deadline
+        form.link.data = event.link
+        form.format.data = event.format or ''
+        form.city.data = event.city
+        form.category_id.data = event.category_id
+        form.company_id.data = event.company_id or 0
+
+    if form.validate_on_submit():
+        picture_file = event.image_file
+        if form.image.data:
+            picture_file = save_picture(form.image.data)
+
+        selected_company = form.company_id.data if form.company_id.data != 0 else None
+
+        req = EventEditRequest(
+            event_id=event.id,
+            requester_id=current_user.id,
+            status='pending',
+            title=form.title.data,
+            description=form.description.data,
+            requirements=form.requirements.data,
+            deadline=form.deadline.data,
+            link=form.link.data,
+            format=form.format.data or None,
+            city=form.city.data or None,
+            image_file=picture_file,
+            category_id=form.category_id.data,
+            company_id=selected_company,
+        )
+        db.session.add(req)
+        db.session.commit()
+
+        flash('Зміни надіслано на перевірку модератором.', 'success')
+        return redirect(url_for('profile.me', tab='events'))
+
+    return render_template('events/edit.html', form=form, event=event)
 
 @events.route('/event/<int:id>/delete', methods=['POST'])
 @login_required
@@ -204,11 +260,13 @@ def delete_event(id):
 @events.route('/subscriptions')
 @login_required
 def subscriptions():
-    companies, suggested_companies = get_user_subscriptions_data(current_user)
+    companies, suggested_companies, followed_users, suggested_users = get_user_subscriptions_data(current_user)
 
     return render_template('events/subscriptions.html',
                            companies=companies,
-                           suggested_companies=suggested_companies)
+                           suggested_companies=suggested_companies,
+                           followed_users=followed_users,
+                           suggested_users=suggested_users)
 
 
 @events.route('/company/<int:id>/toggle_subscribe', methods=['POST'])
