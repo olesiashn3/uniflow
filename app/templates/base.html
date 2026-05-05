@@ -20,10 +20,10 @@
                 <a href="{{ url_for('favorites.index') }}">Вибране</a>
 
                 <a href="{{ url_for('events.subscriptions') }}">Підписки</a>
-                <a href="{{ url_for('notifications.index') }}" style="position: relative;">
+                <a href="{{ url_for('notifications.index') }}" class="nav-notify">
                     <i class="ph ph-bell"></i> Сповіщення
                     {% if unread_notifications_count > 0 %}
-                        <span style="position: absolute; top: -10px; right: -12px; min-width: 18px; height: 18px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px;">
+                        <span class="nav-badge">
                             {{ unread_notifications_count if unread_notifications_count < 100 else '99+' }}
                         </span>
                     {% endif %}
