@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Запити на організації — UniFlow{% endblock %}
+
+{% block content %}
+<style>
+    .req-wrapper { max-width: 1100px; margin: 48px auto; }
+    .req-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 22px; }
+    .req-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; margin: 0; }
+    .req-sub { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+
+    .req-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 22px; }
+    .req-tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 14px; border-radius: 999px;
+        border: 1px solid var(--border); text-decoration: none;
+        color: var(--text-muted); font-weight: 600; font-size: 13px;
+        background: #fff;
+        transition: all 0.2s;
+    }
+    .req-tab:hover { border-color: #cbd5e1; color: var(--text); }
+    .req-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+    .req-count { background: rgba(255,255,255,0.18); padding: 2px 8px; border-radius: 999px; font-weight: 800; }
+    .req-tab:not(.active) .req-count { background: var(--bg); color: var(--text); }
+
+    .req-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        gap: 18px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    .req-meta { color: var(--text-muted); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+    .req-main h3 { margin: 0; font-size: 16px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .req-main p { margin: 10px 0 0; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+    .req-actions { display: flex; flex-direction: column; gap: 8px; min-width: 170px; }
+    .mini { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    .note-input { width: 100%; min-height: 74px; resize: vertical; }
+</style>
+
+<div class="req-wrapper">
+    <div class="req-header">
+        <div>
+            <h1 class="req-title">Запити на створення організації</h1>
+            <div class="req-sub">Тут можна переглядати запити користувачів та схвалювати або відхиляти.</div>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline">← Назад в адмінку</a>
+    </div>
+
+    <div class="req-tabs">
+        <a class="req-tab {% if current_status == 'pending' %}active{% endif %}" href="{{ url_for('admin.org_requests', status='pending') }}">
+            На розгляді <span class="req-count">{{ pending_count }}</span>
+        </a>
+        <a class="req-tab {% if current_status == 'approved' %}active{% endif %}" href="{{ url_for('admin.org_requests', status='approved') }}">
+            Схвалені <span class="req-count">{{ approved_count }}</span>
+        </a>
+        <a class="req-tab {% if current_status == 'rejected' %}active{% endif %}" href="{{ url_for('admin.org_requests', status='rejected') }}">
+            Відхилені <span class="req-count">{{ rejected_count }}</span>
+        </a>
+    </div>
+
+    {% for req in requests %}
+        <div class="req-card">
+            <div class="req-main" style="flex: 1;">
+                <h3>{{ req.company_name }}</h3>
+                <div class="req-meta">
+                    <span><i class="ph ph-user"></i> {{ req.requester.username }} ({{ req.requester.email }})</span>
+                    <span><i class="ph ph-calendar-blank"></i> {{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    {% if req.contact_email %}
+                        <span><i class="ph ph-envelope"></i> {{ req.contact_email }}</span>
+                    {% endif %}
+                    {% if req.social_link %}
+                        <span><i class="ph ph-link"></i> <a href="{{ req.social_link }}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 700;">посилання</a></span>
+                    {% endif %}
+                </div>
+
+                {% if req.comment %}
+                    <p><strong style="color: var(--text);">Коментар:</strong> {{ req.comment }}</p>
+                {% else %}
+                    <p class="mini">Коментар не вказано.</p>
+                {% endif %}
+
+                {% if req.status != 'pending' %}
+                    <div class="mini">
+                        Рішення: <strong style="color: var(--text);">{{ req.status }}</strong>
+                        {% if req.decided_at %} · {{ req.decided_at.strftime('%d.%m.%Y %H:%M') }}{% endif %}
+                        {% if req.decided_by %} · {{ req.decided_by.username }}{% endif %}
+                        {% if req.created_company %} · Компанія: {{ req.created_company.name }}{% endif %}
+                    </div>
+                    {% if req.admin_note %}
+                        <div class="mini">Нотатка адміна: {{ req.admin_note }}</div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="req-actions">
+                {% if req.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('admin.approve_org_request', request_id=req.id) }}">
+                        <button type="submit" class="btn btn-success btn-full">Схвалити</button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('admin.reject_org_request', request_id=req.id) }}">
+                        <textarea name="admin_note" class="form-control note-input" placeholder="Причина відхилення (опціонально)"></textarea>
+                        <button type="submit" class="btn btn-danger btn-full" style="margin-top: 8px;">Відхилити</button>
+                    </form>
+                {% else %}
+                    <span class="status-badge status-{{ req.status }}" style="display: inline-flex; align-items: center; justify-content: center;">
+                        {{ 'На розгляді' if req.status == 'pending' else ('Схвалено' if req.status == 'approved' else 'Відхилено') }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state" style="padding: 56px 20px;">
+            <i class="ph ph-inbox empty-icon" style="font-size: 54px; color: var(--text-muted);"></i>
+            <h3 style="margin-top: 10px;">Немає запитів</h3>
+            <p style="color: var(--text-muted); margin-top: 8px;">У цьому статусі поки порожньо.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

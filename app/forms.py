@@ -128,3 +128,23 @@ class NewsPostForm(FlaskForm):
     ])
     submit = SubmitField('Опублікувати')
 
+
+class OrganizationRequestForm(FlaskForm):
+    company_name = StringField('Назва компанії / організації', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Length(min=2, max=140, message='Від 2 до 140 символів')
+    ])
+    social_link = StringField('Посилання на соцмережу / сайт', validators=[
+        Optional(),
+        URL(message='Введіть коректне посилання (почніть з http:// або https://)')
+    ])
+    contact_email = StringField('Контактна пошта', validators=[
+        DataRequired(message='Це поле обовʼязкове'),
+        Email(message='Введіть коректний email')
+    ])
+    comment = TextAreaField('Коментар для адміністратора', validators=[
+        Optional(),
+        Length(max=2000, message='Максимум 2000 символів')
+    ])
+    submit = SubmitField('Надіслати на розгляд')
+

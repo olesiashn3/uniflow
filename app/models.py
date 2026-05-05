@@ -177,3 +177,36 @@ class NewsPost(db.Model):
     def __repr__(self):
         return f'<NewsPost {self.id} company={self.company_id}>'
 
+
+class OrganizationRequest(db.Model):
+    __tablename__ = 'organization_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    company_name = db.Column(db.String(140), nullable=False)
+    social_link = db.Column(db.String(500), nullable=True)
+    contact_email = db.Column(db.String(120), nullable=False)
+    comment = db.Column(db.Text, nullable=True)
+
+    status = db.Column(db.String(10), default='pending', nullable=False)  # pending | approved | rejected
+    admin_note = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    decided_at = db.Column(db.DateTime, nullable=True)
+
+    requester_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    requester = db.relationship(
+        'User',
+        foreign_keys=[requester_id],
+        backref=db.backref('organization_requests', lazy='dynamic')
+    )
+
+    decided_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    decided_by = db.relationship('User', foreign_keys=[decided_by_id])
+
+    created_company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True, index=True)
+    created_company = db.relationship('Company', foreign_keys=[created_company_id])
+
+    def __repr__(self):
+        return f'<OrganizationRequest {self.id} status={self.status}>'
+

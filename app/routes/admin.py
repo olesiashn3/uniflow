@@ -1,8 +1,11 @@
 import os
 import secrets
-from flask import Blueprint, render_template, redirect, url_for, flash, current_app
+from datetime import datetime
+
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from flask_login import login_required, current_user
-from app.models import Event, Company
+from app import db
+from app.models import Event, Company, OrganizationRequest, User
 from app.forms import CompanyForm, AssignCompanyForm
 from PIL import Image
 from app.services.admin_service import (
@@ -49,13 +52,15 @@ def save_logo(form_logo):
 @admin_required
 def dashboard():
     pending, approved, rejected, users, companies, analytics = get_dashboard_data()
+    pending_org_requests_count = OrganizationRequest.query.filter_by(status='pending').count()
     return render_template('admin/dashboard.html',
                            pending=pending,
                            approved_count=approved,
                            rejected_count=rejected,
                            users_count=users,
                            companies=companies,
-                           analytics=analytics)
+                           analytics=analytics,
+                           pending_org_requests_count=pending_org_requests_count)
 
 
 @admin.route('/approve/<int:id>')
@@ -129,3 +134,78 @@ def assign_company():
         return redirect(url_for('admin.dashboard'))
 
     return render_template('admin/assign_company.html', form=form)
+
+
+@admin.route('/org-requests')
+@login_required
+@admin_required
+def org_requests():
+    status = request.args.get('status', 'pending').strip()
+    if status not in ('pending', 'approved', 'rejected'):
+        status = 'pending'
+
+    reqs = OrganizationRequest.query.filter_by(status=status).order_by(OrganizationRequest.created_at.desc()).all()
+    pending_count = OrganizationRequest.query.filter_by(status='pending').count()
+    approved_count = OrganizationRequest.query.filter_by(status='approved').count()
+    rejected_count = OrganizationRequest.query.filter_by(status='rejected').count()
+
+    return render_template(
+        'admin/org_requests.html',
+        requests=reqs,
+        current_status=status,
+        pending_count=pending_count,
+        approved_count=approved_count,
+        rejected_count=rejected_count,
+    )
+
+
+@admin.route('/org-requests/<int:request_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_org_request(request_id):
+    req = OrganizationRequest.query.get_or_404(request_id)
+    if req.status != 'pending':
+        flash('Цей запит вже оброблено.', 'info')
+        return redirect(url_for('admin.org_requests', status=req.status))
+
+    # Create a company and bind requester as representative.
+    company = create_company_record(
+        name=req.company_name,
+        description=None,
+        website=req.social_link,
+        logo_file=None,
+    )
+
+    user = User.query.get(req.requester_id)
+    if user:
+        user.company_id = company.id
+
+    req.status = 'approved'
+    req.decided_at = datetime.utcnow()
+    req.decided_by_id = current_user.id
+    req.created_company_id = company.id
+    db.session.commit()
+
+    flash(f'Запит схвалено. Організацію "{company.name}" створено та користувача привʼязано.', 'success')
+    return redirect(url_for('admin.org_requests', status='pending'))
+
+
+@admin.route('/org-requests/<int:request_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_org_request(request_id):
+    req = OrganizationRequest.query.get_or_404(request_id)
+    if req.status != 'pending':
+        flash('Цей запит вже оброблено.', 'info')
+        return redirect(url_for('admin.org_requests', status=req.status))
+
+    note = (request.form.get('admin_note') or '').strip()
+    req.status = 'rejected'
+    req.admin_note = note or None
+    req.decided_at = datetime.utcnow()
+    req.decided_by_id = current_user.id
+
+    from app import db
+    db.session.commit()
+    flash('Запит відхилено.', 'info')
+    return redirect(url_for('admin.org_requests', status='pending'))

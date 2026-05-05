@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Запит на створення організації — UniFlow{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Запит на створення організації</h2>
+    <p class="auth-subtitle">
+        Це форма для розгляду адміністратора — ми перевіримо ваш запит і, якщо все ок, додамо організацію та
+        привʼяжемо вас як представника.
+    </p>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label>{{ form.company_name.label.text }}</label>
+            {{ form.company_name(class="form-control", placeholder="Напр.: StudentHub або SoftServe") }}
+            {% for error in form.company_name.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.social_link.label.text }}</label>
+            {{ form.social_link(class="form-control", placeholder="https://instagram.com/... або https://company.com") }}
+            {% for error in form.social_link.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+                <span>{{ form.contact_email.label.text }}</span>
+                <small style="color: var(--text-muted); font-weight: 500;">
+                    Якщо ви компанія — вкажіть корпоративну пошту
+                </small>
+            </label>
+            {{ form.contact_email(class="form-control", placeholder="name@company.com") }}
+            {% for error in form.contact_email.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.comment.label.text }}</label>
+            {{ form.comment(class="form-control", rows=4, placeholder="Коротко опишіть, хто ви і чому просите додати організацію...") }}
+            {% for error in form.comment.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        {{ form.submit(class="btn btn-primary btn-full") }}
+    </form>
+</div>
+{% endblock %}
+

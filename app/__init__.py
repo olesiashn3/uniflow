@@ -22,6 +22,7 @@ def create_app():
     from app.routes.favorites import favorites
     from app.routes.profile import profile
     from app.routes.notifications import notifications
+    from app.routes.organizations import organizations
 
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(events, url_prefix='/')
@@ -29,6 +30,7 @@ def create_app():
     app.register_blueprint(favorites, url_prefix='/favorites')
     app.register_blueprint(profile, url_prefix='/')
     app.register_blueprint(notifications, url_prefix='/notifications')
+    app.register_blueprint(organizations, url_prefix='/')
 
     # Ensure new tables exist in dev (creates missing tables only).
     # Keep disabled in prod/staging by setting AUTO_CREATE_TABLES=0.

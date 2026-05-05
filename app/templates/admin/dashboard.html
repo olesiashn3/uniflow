@@ -259,6 +259,14 @@
             <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; margin: 0;">Панель керування</h1>
         </div>
         <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('admin.org_requests') }}" class="btn-admin btn-admin-outline">
+                Запити на організації
+                {% if pending_org_requests_count and pending_org_requests_count > 0 %}
+                    <span style="margin-left: 6px; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 999px; font-weight: 800; font-size: 12px;">
+                        {{ pending_org_requests_count }}
+                    </span>
+                {% endif %}
+            </a>
             <a href="{{ url_for('admin.assign_company') }}" class="btn-admin btn-admin-outline">
                 Прив'язати юзера
             </a>
