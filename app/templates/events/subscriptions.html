@@ -14,6 +14,7 @@
         max-width: 1400px; /* Як у Вибраному */
         margin: 40px auto 100px auto;
         padding: 0 20px;
+        animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     /* ==========================================
@@ -59,8 +60,6 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 20px;
-        animation: fadeInUp 0.5s ease forwards;
-        animation-delay: 0.1s;
     }
 
     .laconic-card {
@@ -68,20 +67,23 @@
         border: 1px solid #f1f5f9;
         border-radius: 20px;
         padding: 32px;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                    box-shadow 0.35s ease,
+                    border-color 0.25s ease;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 40px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
         opacity: 0;
-        animation: fadeInUp 0.5s ease forwards;
+        animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: calc(0.07s * var(--stagger, 0));
     }
 
     .laconic-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
-        border-color: #e2e8f0;
+        transform: translateY(-5px);
+        box-shadow: 0 16px 40px rgba(79, 70, 229, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04);
+        border-color: rgba(79, 70, 229, 0.18);
     }
 
     .card-left {
@@ -125,28 +127,70 @@
         display: flex;
         gap: 12px;
         flex-shrink: 0;
-        min-width: 260px;
+        min-width: 280px;
     }
 
     .btn-laconic {
         flex: 1; padding: 12px; border-radius: 12px;
         font-weight: 700; font-size: 14px; cursor: pointer;
-        transition: all 0.2s ease; text-align: center; text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        text-align: center; text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
+    .btn-laconic:active { transform: scale(0.98); }
+
     .btn-visit { background: #f8fafc; color: var(--text); border: 1px solid #e2e8f0; }
+    .btn-visit:hover {
+        background: #eef2ff;
+        border-color: rgba(79, 70, 229, 0.25);
+        color: var(--primary);
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.1);
+    }
     .btn-unfollow { background: transparent; color: #ef4444; border: 1px solid #fee2e2; }
-    .btn-follow { background: #0f172a; color: white; border: none; }
+    .btn-unfollow:hover { background: #fef2f2; }
+    .btn-follow { background: linear-gradient(135deg, #0f172a 0%, #312e81 100%); color: white; border: none; }
+    .btn-follow:hover {
+        box-shadow: 0 8px 22px rgba(49, 46, 129, 0.35);
+        transform: translateY(-1px);
+    }
 
     /* ==========================================
        ІНФО-БОКС (Рекомендації)
        ========================================== */
     .info-box-wrapper {
-        background: #f8fafc;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 45%, #eef2ff 100%);
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.12s;
+        opacity: 0;
         border-left: 3px solid var(--primary);
         border-radius: 0 20px 20px 0;
         padding: 40px;
         margin-top: 60px;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+        transition: box-shadow 0.35s ease, transform 0.35s ease;
+    }
+
+    .info-box-wrapper:hover {
+        box-shadow: 0 18px 48px rgba(79, 70, 229, 0.1);
+    }
+
+    .subs-section-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 20px;
+        font-weight: 900;
+        margin: 10px 0 18px 0;
+        opacity: 0;
+        animation: fadeInUp 0.5s ease forwards;
+        animation-delay: calc(0.05s * var(--sec, 0));
+    }
+
+    .subs-empty {
+        opacity: 0;
+        animation: fadeInUp 0.55s ease forwards;
+        animation-delay: 0.08s;
     }
 
     @media (max-width: 768px) {
@@ -173,10 +217,10 @@
     </div>
 
     {% if followed_users %}
-        <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 900; margin: 10px 0 18px 0;">Студенти</h2>
+        <h2 class="subs-section-title" style="--sec: 1;">Студенти</h2>
         <div class="laconic-grid">
             {% for u in followed_users %}
-            <div class="laconic-card">
+            <div class="laconic-card" style="--stagger: {{ loop.index0 }};">
                 <div class="card-left">
                     <div class="card-avatar">
                         {{ u.username[:1]|upper }}
@@ -191,7 +235,7 @@
                     </div>
                 </div>
                 <div class="card-actions">
-                    <a href="{{ url_for('profile.user_profile', username=u.username) }}" class="btn-laconic btn-visit">Профіль</a>
+                    <a href="{{ url_for('profile.user_profile', username=u.username) }}" class="btn-laconic btn-visit">Переглянути</a>
                     <form action="{{ url_for('profile.toggle_follow_user', username=u.username) }}" method="POST" style="flex: 1; display: flex;">
                         <button type="submit" class="btn-laconic btn-unfollow">Відписатися</button>
                     </form>
@@ -203,10 +247,10 @@
     {% endif %}
 
     {% if companies %}
-        <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 900; margin: 10px 0 18px 0;">Організації</h2>
+        <h2 class="subs-section-title" style="--sec: 2;">Організації</h2>
         <div class="laconic-grid">
             {% for company in companies %}
-            <div class="laconic-card">
+            <div class="laconic-card" style="--stagger: {{ loop.index0 }};">
                 <div class="card-left">
                     <div class="card-avatar">
                         {% if company.logo_file %}
@@ -226,7 +270,7 @@
                     </div>
                 </div>
                 <div class="card-actions">
-                    <a href="{{ url_for('profile.company_profile', id=company.id) }}" class="btn-laconic btn-visit">Профіль</a>
+                    <a href="{{ url_for('profile.company_profile', id=company.id) }}" class="btn-laconic btn-visit">Переглянути</a>
 
                     <form action="{{ url_for('events.toggle_subscribe', id=company.id) }}" method="POST" style="flex: 1; display: flex;">
                         <button type="submit" class="btn-laconic btn-unfollow">Відписатися</button>
@@ -236,7 +280,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state" style="padding: 80px 20px; border-radius: 24px; border: 1px dashed var(--border); background: white; text-align: center;">
+        <div class="empty-state subs-empty" style="padding: 80px 20px; border-radius: 24px; border: 1px dashed var(--border); background: white; text-align: center;">
             <i class="ph-fill ph-ghost" style="font-size: 48px; color: #f1f5f9; margin-bottom: 20px;"></i>
             <h3 style="font-weight: 800;">Ви ще ні на кого не підписані</h3>
             <p style="color: var(--text-muted); margin-bottom: 24px;">Підпишіться на цікаві компанії, щоб не пропускати події.</p>
@@ -244,42 +288,45 @@
         </div>
     {% endif %}
 
-    {% if suggested_users or suggested_companies %}
+    {% if suggested_companies %}
         <div class="info-box-wrapper">
-            <h2 style="font-weight: 800; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <h2 class="subs-section-title" style="--sec: 3; margin-bottom: 8px;">
                 Рекомендації
             </h2>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px; max-width: 640px; line-height: 1.55;">
+                Організації, на які ще не підписані. Знаходь тих, з ким ідеальний метч.
+            </p>
             <div class="laconic-grid">
-                {% for u in suggested_users %}
-                <div class="laconic-card" style="box-shadow: none; border-color: #e2e8f0;">
+                {% for company in suggested_companies %}
+                <div class="laconic-card" style="--stagger: {{ loop.index0 }}; background: #fff;">
                     <div class="card-left">
-                        <div class="card-avatar" style="background: white;">{{ u.username[:1]|upper }}</div>
+                        <div class="card-avatar" style="background: white;">
+                            {% if company.logo_file %}
+                                <img src="{{ url_for('static', filename='uploads/' + company.logo_file) }}" alt="" style="width: 100%; height: 100%; border-radius: 14px; object-fit: cover;">
+                            {% else %}
+                                {{ company.name[:1]|upper }}
+                            {% endif %}
+                        </div>
                         <div class="card-info">
                             <div class="card-header-row">
-                                <h3>{{ u.profile.full_name if u.profile and u.profile.full_name else u.username }}</h3>
+                                <h3>{{ company.name }}</h3>
+                                {% if company.is_verified %}
+                                    <span class="badge-verified"><i class="ph-fill ph-check-circle"></i> Верифіковано</span>
+                                {% endif %}
                             </div>
-                            <p class="card-bio">{{ u.profile.headline if u.profile and u.profile.headline else 'Профіль студента' }}</p>
+                            <p class="card-bio">
+                                {% if company.description %}
+                                    {{ company.description[:150] }}{% if company.description|length > 150 %}…{% endif %}
+                                {% else %}
+                                    Дізнайтеся більше про можливості від цієї організації на її сторінці.
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                     <div class="card-actions">
-                        <form action="{{ url_for('profile.toggle_follow_user', username=u.username) }}" method="POST" style="width: 100%; display: flex;">
-                            <button type="submit" class="btn-laconic btn-follow" style="width: 100%;">Підписатися</button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
-                {% for company in suggested_companies %}
-                <div class="laconic-card" style="box-shadow: none; border-color: #e2e8f0;">
-                    <div class="card-left">
-                        <div class="card-avatar" style="background: white;">{{ company.name[:1]|upper }}</div>
-                        <div class="card-info">
-                            <div class="card-header-row"><h3>{{ company.name }}</h3></div>
-                            <p class="card-bio">Дізнайтеся більше про можливості від цієї компанії.</p>
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <form action="{{ url_for('events.toggle_subscribe', id=company.id) }}" method="POST" style="width: 100%; display: flex;">
-                            <button type="submit" class="btn-laconic btn-follow" style="width: 100%;">Підписатися</button>
+                        <a href="{{ url_for('profile.company_profile', id=company.id) }}" class="btn-laconic btn-visit">Переглянути</a>
+                        <form action="{{ url_for('events.toggle_subscribe', id=company.id) }}" method="POST" style="flex: 1; display: flex;">
+                            <button type="submit" class="btn-laconic btn-follow">Підписатися</button>
                         </form>
                     </div>
                 </div>

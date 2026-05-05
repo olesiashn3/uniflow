@@ -260,13 +260,12 @@ def delete_event(id):
 @events.route('/subscriptions')
 @login_required
 def subscriptions():
-    companies, suggested_companies, followed_users, suggested_users = get_user_subscriptions_data(current_user)
+    companies, suggested_companies, followed_users = get_user_subscriptions_data(current_user)
 
     return render_template('events/subscriptions.html',
                            companies=companies,
                            suggested_companies=suggested_companies,
-                           followed_users=followed_users,
-                           suggested_users=suggested_users)
+                           followed_users=followed_users)
 
 
 @events.route('/company/<int:id>/toggle_subscribe', methods=['POST'])

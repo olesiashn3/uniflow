@@ -661,6 +661,41 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .badge-конкурси     { background: #F0FDF4; color: #16A34A; }
 .badge-обміни       { background: #F0F9FF; color: #0284C7; }
 .badge-інше         { background: #F9FAFB; color: #6B7280; }
+
+/* Category pills on cards — use data-category="точна назва з БД" (однаково на всіх сторінках) */
+.badge[data-category] {
+    background: #eef2ff;
+    color: #3730a3;
+    border: 1px solid rgba(79, 70, 229, 0.14);
+}
+.badge[data-category="IT та розробка"] { background: #e0e7ff; color: #3730a3; border-color: transparent; }
+.badge[data-category="SMM та Маркетинг"] { background: #fce7f3; color: #be185d; border-color: transparent; }
+.badge[data-category="Startups & Бізнес"] { background: #ffedd5; color: #c2410c; border-color: transparent; }
+.badge[data-category="UI/UX Дизайн"] { background: #f3e8ff; color: #6b21a8; border-color: transparent; }
+.badge[data-category="Волонтерство"] { background: #dcfce7; color: #15803d; border-color: transparent; }
+.badge[data-category="Геймдев (Gamedev)"] { background: #ede9fe; color: #4c1d95; border-color: transparent; }
+.badge[data-category="Гранти"] { background: #d1fae5; color: #047857; border-color: transparent; }
+.badge[data-category="Еко-ініціативи"] { background: #ccfbf1; color: #0f766e; border-color: transparent; }
+.badge[data-category="Закордонні стажування"] { background: #cffafe; color: #0e7490; border-color: transparent; }
+.badge[data-category="Конкурси"] { background: #fef9c3; color: #a16207; border-color: transparent; }
+.badge[data-category="Конференції"] { background: #e0f2fe; color: #0369a1; border-color: transparent; }
+.badge[data-category="Креативні індустрії"] { background: #fae8ff; color: #a21caf; border-color: transparent; }
+.badge[data-category="Культура та Мистецтво"] { background: #ffe4e6; color: #be123c; border-color: transparent; }
+.badge[data-category="Курси"] { background: #ede9fe; color: #6d28d9; border-color: transparent; }
+.badge[data-category="Менеджмент та QA"] { background: #f1f5f9; color: #334155; border-color: transparent; }
+.badge[data-category="Наука та гранти"] { background: #dbeafe; color: #1d4ed8; border-color: transparent; }
+.badge[data-category="Обміни"] { background: #cffafe; color: #0891b2; border-color: transparent; }
+.badge[data-category="Стажування"] { background: #dcfce7; color: #166534; border-color: transparent; }
+.badge[data-category="Студрада та активізм"] { background: #fee2e2; color: #b91c1c; border-color: transparent; }
+.badge[data-category="Хакатони"] { background: #ffedd5; color: #c2410c; border-color: transparent; }
+.badge[data-category="Штучний інтелект (AI)"] { background: #f3e8ff; color: #7e22ce; border-color: transparent; }
+.badge[data-category="Інше"] { background: #f1f5f9; color: #475569; border-color: transparent; }
+/* Короткі / додаткові назви (сідер, тестові дані) */
+.badge[data-category="IT"] { background: #e0e7ff; color: #312e81; border-color: transparent; }
+.badge[data-category="Дизайн"] { background: #f3e8ff; color: #6b21a8; border-color: transparent; }
+.badge[data-category="Бізнес"] { background: #ffedd5; color: #9a3412; border-color: transparent; }
+.badge[data-category="Наука"] { background: #dbeafe; color: #1e40af; border-color: transparent; }
+
 .heart-form { margin: 0; }
 .heart-btn {
     background: none; border: none; cursor: pointer;

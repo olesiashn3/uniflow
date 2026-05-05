@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from app import db
-from app.models import Event, Favorite, Question, Company, User
+from app.models import Event, Favorite, Question, Company
 from sqlalchemy import or_
 
 
@@ -82,12 +82,12 @@ def get_user_events(user_id):
 
 def get_user_subscriptions_data(user):
     companies = user.subscribed_companies
-    all_companies = Company.query.all()
-    suggested_companies = [c for c in all_companies if c not in companies][:4]
+    subscribed_company_ids = {c.id for c in companies}
+    all_companies = Company.query.order_by(Company.created_at.desc()).all()
+    suggested_companies = [c for c in all_companies if c.id not in subscribed_company_ids][:4]
+
     followed_users = user.followed_users.all()
-    suggested_users = User.query.filter(User.id != user.id).all()
-    suggested_users = [u for u in suggested_users if u not in followed_users][:6]
-    return companies, suggested_companies, followed_users, suggested_users
+    return companies, suggested_companies, followed_users
 
 
 def toggle_company_subscription(user, company):

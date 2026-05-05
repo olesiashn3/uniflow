@@ -116,7 +116,7 @@
             {% set days_left = (event.deadline - now).days if event.deadline else None %}
             <div class="event-card">
                 <div class="event-card-top">
-                    <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                    <span class="badge" data-category="{{ event.category.name if event.category else 'Інше' }}">
                         {{ event.category.name if event.category else 'Інше' }}
                     </span>
                 </div>

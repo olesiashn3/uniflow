@@ -100,7 +100,7 @@
                     {% for event in my_events %}
                         <div class="event-card">
                             <div class="event-card-top" style="display:flex; justify-content: space-between; align-items:center;">
-                                <span class="badge badge-{{ event.category.name|lower if event.category else 'інше' }}">
+                                <span class="badge" data-category="{{ event.category.name if event.category else 'Інше' }}">
                                     {{ event.category.name if event.category else 'Інше' }}
                                 </span>
                                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">
