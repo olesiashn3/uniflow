@@ -6,3 +6,5 @@ Flask-Migrate
 python-dotenv
 PyMySQL
 Pillow
+pytest
+pytest-cov

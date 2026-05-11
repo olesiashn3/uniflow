@@ -1,0 +1,142 @@
+' UniFlow — UML діаграми (PlantUML). Рендер: plantuml docs/diagrams.puml
+' Або розширення PlantUML у VS Code / IDE.
+
+@startuml UniFlow_UseCaseDiagram
+skinparam packageStyle rectangle
+left to right direction
+
+actor "Студент" as Student
+actor "Організатор" as Organizer
+actor "Адміністратор" as Admin
+
+rectangle "UniFlow" {
+  usecase "UC1: Подати запит на\nстатус організації" as UC1
+  usecase "UC2: Схвалити / відхилити\nзапит на організацію" as UC2
+  usecase "UC3: Додати подію\n(з модерацією)" as UC3
+  usecase "UC4: Зберегти подію\nу вибране" as UC4
+  usecase "UC5: Переглянути сповіщення\nта позначити прочитаним" as UC5
+  usecase "Пошук і фільтрація подій" as UCsearch
+  usecase "Схвалити / відхилити подію" as UCmod
+}
+
+Organizer --> UC1
+Organizer --> UC3
+Admin --> UC2
+Admin --> UCmod
+
+Student --> UC4
+Student --> UC5
+Student --> UCsearch
+Organizer --> UCsearch
+Organizer --> UC5
+@enduml
+
+
+@startuml UniFlow_DomainModel
+skinparam classAttributeIconSize 0
+hide circle
+
+class User {
+  username
+  email
+  role
+  company_id
+}
+
+class Company {
+  name
+  is_verified
+}
+
+class OrganizationRequest {
+  company_name
+  status
+  requester_id
+  created_company_id
+}
+
+class Event {
+  title
+  status
+  deadline
+  author_id
+  company_id
+}
+
+class Notification {
+  type
+  title
+  message
+  user_id
+  event_id
+}
+
+User "1" -- "0..1" Company : член / представник
+User "1" -- "*" OrganizationRequest : подає >
+OrganizationRequest ..> Company : створює при схваленні >
+User "1" -- "*" Event : публікує >
+Company "1" -- "*" Event : оголошує >
+User "1" -- "*" Notification : отримує >
+Event "0..1" -- "*" Notification : контекст >
+@enduml
+
+
+@startuml UniFlow_ClassDiagram
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: int
+  +username: str
+  +email: str
+  +role: str
+  +company_id: int?
+  +set_password(password)
+  +check_password(password): bool
+}
+
+class Company {
+  +id: int
+  +name: str
+  +is_verified: bool
+  +website: str?
+}
+
+class OrganizationRequest {
+  +id: int
+  +company_name: str
+  +status: str
+  +requester_id: int
+  +decided_by_id: int?
+  +created_company_id: int?
+}
+
+class Event {
+  +id: int
+  +title: str
+  +description: str
+  +status: str
+  +deadline: date?
+  +author_id: int
+  +company_id: int?
+  +category_id: int?
+}
+
+class Notification {
+  +id: int
+  +type: str
+  +title: str
+  +message: str
+  +is_read: bool
+  +user_id: int
+  +event_id: int?
+}
+
+User "n" --> "0..1" Company : company
+User "1" --> "*" OrganizationRequest : organization_requests
+User "1" --> "*" Event : events
+Company "1" --> "*" Event : events
+User "1" --> "*" Notification : notifications
+Event "1" --> "*" Notification : notifications
+OrganizationRequest --> User : requester
+OrganizationRequest --> Company : created_company
+@enduml

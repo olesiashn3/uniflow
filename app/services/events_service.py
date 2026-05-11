@@ -1,58 +1,36 @@
-from datetime import date, datetime
+from datetime import datetime
+from typing import Any, Optional
 
 from app import db
 from app.models import Event, Favorite, Question, Company
-from sqlalchemy import or_
+from app.repositories.event_repository import IEventRepository, SqlAlchemyEventRepository
 
 
-def build_events_query(search='', category_id=0, sort='new', format_type='', city_filter='', feed='all', user=None):
-    query = Event.query.filter_by(status='approved')
-    query = query.filter((Event.deadline >= date.today()) | (Event.deadline == None))
+def build_events_query(
+    search: str = "",
+    category_id: int = 0,
+    sort: str = "new",
+    format_type: str = "",
+    city_filter: str = "",
+    feed: str = "all",
+    user: Any = None,
+    repository: Optional[IEventRepository] = None,
+) -> Any:
+    """
+    Публічна вибірка подій для стрічки. Делегує репозиторію та стратегії сортування.
 
-    if feed == 'foryou' and user and user.is_authenticated:
-        interest_ids = [category.id for category in user.interests]
-        favorites = user.favorites.all()
-        activity_cat_ids = [fav.event.category_id for fav in favorites if fav.event and fav.event.category_id]
-        recommended_category_ids = list(set(interest_ids + activity_cat_ids))
-
-        if recommended_category_ids:
-            query = query.filter(Event.category_id.in_(recommended_category_ids))
-        else:
-            query = query.filter(Event.id < 0)
-    elif feed == 'subscriptions' and user and user.is_authenticated:
-        subscribed_company_ids = [company.id for company in user.subscribed_companies]
-        followed_user_ids = [u.id for u in user.followed_users.all()]
-
-        if subscribed_company_ids or followed_user_ids:
-            parts = []
-            if subscribed_company_ids:
-                parts.append(Event.company_id.in_(subscribed_company_ids))
-            if followed_user_ids:
-                parts.append(Event.author_id.in_(followed_user_ids))
-
-            # SQLAlchemy OR across parts
-            if len(parts) == 1:
-                query = query.filter(parts[0])
-            else:
-                query = query.filter(or_(*parts))
-        else:
-            query = query.filter(Event.id < 0)
-
-    if search:
-        query = query.filter(Event.title.ilike(f'%{search}%'))
-    if category_id > 0:
-        query = query.filter(Event.category_id == category_id)
-    if format_type:
-        query = query.filter_by(format=format_type)
-    if city_filter:
-        query = query.filter(Event.city.ilike(f'%{city_filter}%'))
-
-    if sort == 'deadline':
-        query = query.filter(Event.deadline != None).order_by(Event.deadline.asc())
-    else:
-        query = query.order_by(Event.created_at.desc())
-
-    return query
+    Параметр ``repository`` дозволяє підставити in-memory реалізацію в тестах.
+    """
+    repo = repository or SqlAlchemyEventRepository()
+    return repo.build_public_events_query(
+        search=search or "",
+        category_id=category_id or 0,
+        sort=sort or "new",
+        format_type=format_type or "",
+        city_filter=city_filter or "",
+        feed=feed or "all",
+        user=user,
+    )
 
 
 def create_event_from_form(form, author_id, image_file):

@@ -54,6 +54,24 @@ def create_rejection_notification(event):
     )
 
 
+def create_organization_request_approved_notification(user_id: int, company_name: str) -> Notification:
+    """
+    Сповіщення заявника про схвалення запиту на реєстрацію організації.
+
+    Викликається з Observer після схвалення адміністратором (див. ``app.observers``).
+    """
+    return create_notification(
+        user_id=user_id,
+        notification_type='organization_request_approved',
+        title=f'Організацію «{company_name}» схвалено',
+        message=(
+            f'Ваш запит схвалено. Організацію «{company_name}» створено '
+            f'та привʼязано до вашого профілю.'
+        ),
+        event_id=None,
+    )
+
+
 def generate_deadline_reminders_for_user(user):
     reminder_day = date.today() + timedelta(days=3)
     favorite_events = db.session.query(Event).join(

@@ -20,8 +20,9 @@ from app.services.admin_service import (
 )
 from app.services.notifications_service import (
     create_approval_notification,
-    create_rejection_notification
+    create_rejection_notification,
 )
+from app.observers.organization_approval import notify_organization_request_approved
 
 admin = Blueprint('admin', __name__)
 
@@ -221,6 +222,11 @@ def approve_org_request(request_id):
     req.decided_by_id = current_user.id
     req.created_company_id = company.id
     db.session.commit()
+
+    notify_organization_request_approved(
+        requester_id=req.requester_id,
+        company_name=company.name,
+    )
 
     flash(f'Запит схвалено. Організацію "{company.name}" створено та користувача привʼязано.', 'success')
     return redirect(url_for('admin.org_requests', status='pending'))
