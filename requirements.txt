@@ -8,3 +8,4 @@ PyMySQL
 Pillow
 pytest
 pytest-cov
+email-validator
