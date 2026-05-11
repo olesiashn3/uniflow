@@ -36,19 +36,20 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          python -m pytest --cov=app --cov-report=xml --cov-report=html
+          python -m pytest --cov=app --cov-report=xml --cov-report=html --junitxml=junit.xml
 
       - name: Fix coverage.xml paths for SonarCloud
         run: |
           sed -i 's@/home/runner/work/uniflow/uniflow@/github/workspace@g' coverage.xml
 
-      - name: Upload coverage artifacts (HTML + XML)
+      - name: Upload test and coverage reports (HTML, coverage.xml, junit.xml)
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: |
             htmlcov/
             coverage.xml
+            junit.xml
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
