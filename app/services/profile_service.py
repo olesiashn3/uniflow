@@ -2,7 +2,7 @@ from datetime import date
 
 from app.models import Event
 
-from app.services.events_service import toggle_company_subscription  # re-export for consistency
+from app.services.events_service import toggle_company_subscription
 
 
 def get_user_public_events(user_id):

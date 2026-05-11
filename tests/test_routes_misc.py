@@ -1,5 +1,3 @@
-"""Профіль, організації, обране, сповіщення, адмін — інтеграційні HTTP-тести."""
-
 from __future__ import annotations
 
 import json

@@ -1,5 +1,3 @@
-"""Тести патерну Observer для схвалення організації."""
-
 from __future__ import annotations
 
 import uuid
@@ -30,7 +28,7 @@ pytestmark = pytest.mark.usefixtures("reset_organization_approval_subject")
 
 
 def test_subject_attach_notify_single():
-    """Один спостерігач отримує один виклик."""
+    """Single observer receives one notification call."""
     subject = OrganizationApprovalSubject()
     rec = _RecordingObserver()
     subject.attach(rec)
@@ -43,7 +41,7 @@ def test_subject_attach_notify_single():
 
 @pytest.mark.parametrize("uid", range(1, 31))
 def test_subject_multicast_three_observers(uid):
-    """Кілька спостерігачів отримують однакову подію."""
+    """Multiple observers each receive the same event."""
     subject = OrganizationApprovalSubject()
     observers = [_RecordingObserver() for _ in range(3)]
     for o in observers:
@@ -56,7 +54,7 @@ def test_subject_multicast_three_observers(uid):
 
 @pytest.mark.parametrize("n", range(20))
 def test_detach_stops_delivery(n):
-    """Після ``detach`` спостерігач більше не викликається."""
+    """Detached observer is not invoked."""
     subject = OrganizationApprovalSubject()
     rec = _RecordingObserver()
     subject.attach(rec)
@@ -67,7 +65,7 @@ def test_detach_stops_delivery(n):
 
 @pytest.mark.parametrize("n", range(15))
 def test_attach_idempotent(n):
-    """Повторний ``attach`` не дублює спостерігача."""
+    """Duplicate attach registers the observer once."""
     subject = OrganizationApprovalSubject()
     rec = _RecordingObserver()
     subject.attach(rec)
@@ -77,7 +75,7 @@ def test_attach_idempotent(n):
 
 
 def test_context_is_frozen():
-    """Контекст immutable (dataclass frozen)."""
+    """OrganizationApprovedContext is a frozen dataclass."""
     import dataclasses
 
     ctx = OrganizationApprovedContext(requester_id=3, company_name="Z")
@@ -87,7 +85,7 @@ def test_context_is_frozen():
 
 @pytest.mark.parametrize("name", ["A", "Довга назва компанії " * 3, "Co <>&"])
 def test_notify_integration_creates_notification(app, db, user, name):
-    """Після ``notify_organization_request_approved`` з'являється ``Notification``."""
+    """notify_organization_request_approved persists a Notification row."""
     import app.observers.organization_approval as org_mod
 
     org_mod._subject = None
@@ -99,7 +97,7 @@ def test_notify_integration_creates_notification(app, db, user, name):
 
 @pytest.mark.parametrize("suffix", range(25))
 def test_get_singleton_returns_same_instance(app, db, suffix):
-    """``get_organization_approval_subject`` повертає той самий об'єкт."""
+    """get_organization_approval_subject returns the same instance."""
     del suffix
     a = get_organization_approval_subject()
     b = get_organization_approval_subject()
@@ -107,7 +105,7 @@ def test_get_singleton_returns_same_instance(app, db, suffix):
 
 
 def test_default_observer_type_on_fresh_singleton(app, db):
-    """Після скидання суб'єкт містить хоча б одного спостерігача (notification)."""
+    """Fresh subject includes at least one default notification observer."""
     import app.observers.organization_approval as org_mod
 
     org_mod._subject = None
@@ -118,7 +116,7 @@ def test_default_observer_type_on_fresh_singleton(app, db):
 
 @pytest.mark.parametrize("rid", [1, 42, 10**6])
 def test_recording_observer_with_custom_subject(rid):
-    """Локальний суб'єкт без singleton для ізольованого юніт-тесту."""
+    """Local subject instance isolates observer tests from the singleton."""
     subject = OrganizationApprovalSubject()
     rec = _RecordingObserver()
     subject.attach(rec)

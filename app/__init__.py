@@ -32,8 +32,6 @@ def create_app():
     app.register_blueprint(notifications, url_prefix='/notifications')
     app.register_blueprint(organizations, url_prefix='/')
 
-    # Ensure new tables exist in dev (creates missing tables only).
-    # Keep disabled in prod/staging by setting AUTO_CREATE_TABLES=0.
     if app.config.get('AUTO_CREATE_TABLES', False):
         with app.app_context():
             from app import models  # noqa: F401

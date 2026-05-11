@@ -1,5 +1,3 @@
-"""Репозиторії для ізоляції доступу до даних."""
-
 from app.repositories.event_repository import (
     IEventRepository,
     InMemoryEventRepository,

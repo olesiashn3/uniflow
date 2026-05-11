@@ -16,11 +16,7 @@ def build_events_query(
     user: Any = None,
     repository: Optional[IEventRepository] = None,
 ) -> Any:
-    """
-    Публічна вибірка подій для стрічки. Делегує репозиторію та стратегії сортування.
-
-    Параметр ``repository`` дозволяє підставити in-memory реалізацію в тестах.
-    """
+    """Build the public events query; optional ``repository`` for tests."""
     repo = repository or SqlAlchemyEventRepository()
     return repo.build_public_events_query(
         search=search or "",

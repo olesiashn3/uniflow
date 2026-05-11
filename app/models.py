@@ -223,7 +223,7 @@ class OrganizationRequest(db.Model):
     contact_email = db.Column(db.String(120), nullable=False)
     comment = db.Column(db.Text, nullable=True)
 
-    status = db.Column(db.String(10), default='pending', nullable=False)  # pending | approved | rejected
+    status = db.Column(db.String(10), default='pending', nullable=False)
     admin_note = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -252,7 +252,7 @@ class UserProfile(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
 
     full_name = db.Column(db.String(140), nullable=True)
-    headline = db.Column(db.String(160), nullable=True)  # one-liner under name
+    headline = db.Column(db.String(160), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     education = db.Column(db.String(200), nullable=True)
     work = db.Column(db.String(200), nullable=True)
@@ -275,7 +275,7 @@ class EventEditRequest(db.Model):
     requester_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     requester = db.relationship('User', foreign_keys=[requester_id])
 
-    status = db.Column(db.String(12), default='pending', nullable=False)  # pending|approved|rejected
+    status = db.Column(db.String(12), default='pending', nullable=False)
     admin_note = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -284,7 +284,6 @@ class EventEditRequest(db.Model):
     decided_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     decided_by = db.relationship('User', foreign_keys=[decided_by_id])
 
-    # Proposed changes (copy of Event fields)
     title = db.Column(db.String(200), nullable=True)
     description = db.Column(db.Text, nullable=True)
     requirements = db.Column(db.Text, nullable=True)

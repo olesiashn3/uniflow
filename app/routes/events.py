@@ -48,7 +48,7 @@ def index():
     sort = request.args.get('sort', 'new')
     format_type = request.args.get('format', '').strip()
     city_filter = request.args.get('city', '').strip()
-    feed = request.args.get('feed', 'all')  # Параметр стрічки
+    feed = request.args.get('feed', 'all')
 
     query = build_events_query(
         search=search,
@@ -62,7 +62,6 @@ def index():
 
     events_list = query.paginate(page=page, per_page=9, error_out=False)
 
-    # Сортуємо категорії за алфавітом
     categories = Category.query.order_by(Category.name.asc()).all()
 
     popular_cities = [
@@ -100,7 +99,6 @@ def detail(id):
 
     questions = get_event_questions(event)
 
-    # Google Calendar link (all-day on deadline date; fallback to today)
     base_url = "https://calendar.google.com/calendar/render"
     start_date = (event.deadline or date.today())
     end_date = start_date.toordinal() + 1
@@ -164,7 +162,6 @@ def add():
 @events.route('/my-events')
 @login_required
 def my_events():
-    # Moved into "Мій профіль" (cabinet) to keep top nav clean.
     return redirect(url_for('profile.me', tab='events'))
 
 
@@ -232,17 +229,13 @@ def delete_event(id):
         flash('У вас немає прав для видалення цієї події.', 'danger')
         return redirect(request.referrer or url_for('events.my_events'))
 
-    # Cleanup dependent rows to avoid FK issues
     Favorite.query.filter_by(event_id=event.id).delete(synchronize_session=False)
     Notification.query.filter_by(event_id=event.id).delete(synchronize_session=False)
-    # If DB has extra child tables (e.g. MySQL event_images) not modeled in ORM, clear them too
     try:
         db.session.execute(text("DELETE FROM event_images WHERE event_id = :event_id"), {"event_id": event.id})
     except Exception:
-        # Table might not exist in some environments
         pass
 
-    # Remove uploaded cover if present (best-effort)
     if event.image_file:
         try:
             picture_path = os.path.join(current_app.root_path, 'static', 'uploads', event.image_file)
@@ -277,7 +270,6 @@ def toggle_subscribe(id):
         flash(f'Ви підписалися на {company.name}', 'success')
     else:
         flash(f'Ви відписалися від {company.name}', 'info')
-    # Повертаємо туди, звідки прийшов юзер
     return redirect(request.referrer or url_for('events.index'))
 
 

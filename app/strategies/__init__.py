@@ -1,5 +1,3 @@
-"""Патерни стратегій для доменної логіки (наприклад, сортування подій)."""
-
 from app.strategies.event_sort import (
     EventSortStrategy,
     SortByDeadline,

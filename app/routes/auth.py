@@ -13,7 +13,6 @@ auth = Blueprint('auth', __name__)
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
-    # Якщо вже залогінений — на головну
     if current_user.is_authenticated:
         return redirect(url_for('events.index'))
 
@@ -25,11 +24,9 @@ def register():
             password=form.password.data
         )
 
-        # Одразу логінимо юзера після успішної реєстрації (так зручніше UX)
         login_user(user)
         flash('Реєстрація успішна! Налаштуймо твій простір.', 'success')
 
-        # Кидаємо на сторінку онбордінгу
         return redirect(url_for('auth.onboarding'))
 
     return render_template('auth/register.html', form=form)
@@ -47,7 +44,6 @@ def login():
             login_user(user)
             next_page = request.args.get('next')
 
-            # Якщо користувач ще не пройшов онбордінг — кидаємо його туди
             if not user.onboarding_done:
                 return redirect(url_for('auth.onboarding'))
 
@@ -66,7 +62,6 @@ def logout():
     return redirect(url_for('events.index'))
 
 
-# НОВИЙ РОУТ ДЛЯ ОНБОРДІНГУ
 @auth.route('/onboarding', methods=['GET', 'POST'])
 @login_required
 def onboarding():

@@ -1,9 +1,3 @@
-"""
-Спільні фікстури pytest.
-
-ВАЖЛИВО: змінні середовища для SQLite мають бути встановлені ДО першого імпорту ``app`` / ``config``.
-"""
-
 from __future__ import annotations
 
 import os
@@ -24,7 +18,7 @@ from tests.helpers import DummyUserForYou, DummyUserSubscriptions, make_event_st
 
 @pytest.fixture(scope="function")
 def app() -> Generator:
-    """Flask-додаток із чистою in-memory SQLite на кожен тест."""
+    """Flask app with isolated in-memory SQLite per test."""
     application = create_app()
     application.config["TESTING"] = True
     application.config["WTF_CSRF_ENABLED"] = False
@@ -46,20 +40,20 @@ def app() -> Generator:
 
 @pytest.fixture
 def client(app):
-    """HTTP-клієнт для інтеграційних тестів (за потреби)."""
+    """HTTP test client."""
     return app.test_client()
 
 
 @pytest.fixture
 def db(app):
-    """Контекст застосунку для роботи з ``db.session`` протягом тесту."""
+    """App context for ``db.session`` during the test."""
     with app.app_context():
         yield app_db
 
 
 @pytest.fixture
 def user(app, db) -> User:
-    """Унікальний користувач у БД для тестів моделей / сповіщень."""
+    """Unique user row for model or notification tests."""
     suffix = uuid.uuid4().hex[:8]
     u = User(
         username=f"u_{suffix}",
@@ -74,7 +68,7 @@ def user(app, db) -> User:
 
 @pytest.fixture
 def in_memory_event_repo() -> InMemoryEventRepository:
-    """Репозиторій із невеликим набором типових подій."""
+    """In-memory repository with a small mixed event set."""
     today = date.today()
     events = [
         make_event_stub(
@@ -126,19 +120,19 @@ def in_memory_event_repo() -> InMemoryEventRepository:
 
 @pytest.fixture
 def dummy_user_foryou_empty() -> DummyUserForYou:
-    """Користувач із порожніми інтересами та обраним — стрічка «для тебе» без збігів."""
+    """Dummy user with empty interests and favorites (foryou feed)."""
     return DummyUserForYou()
 
 
 @pytest.fixture
 def dummy_user_subscriptions_empty() -> DummyUserSubscriptions:
-    """Немає підписок і підписок на людей."""
+    """Dummy user with no company or user subscriptions."""
     return DummyUserSubscriptions([], [])
 
 
 @pytest.fixture
 def reset_organization_approval_subject() -> Generator:
-    """Скидає singleton суб'єкта Observer між тестами."""
+    """Reset organization approval observer singleton between tests."""
     import app.observers.organization_approval as org_mod
 
     org_mod._subject = None

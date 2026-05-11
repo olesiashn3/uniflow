@@ -1,9 +1,3 @@
-"""
-Тести моделей ORM (SQLite in-memory): паролі, унікальність, обмеження довжин, repr.
-
-Валідація email як політика тестового шару (regex), оскільки ORM не валідує формат.
-"""
-
 from __future__ import annotations
 
 import itertools
@@ -16,7 +10,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.models import Company, Event, User
 
-# 10*6 = 60 комбінацій локальної частини та домену
 _EMAIL_PARTS: list[Tuple[str, str]] = list(
     itertools.product(
         ["user", "a", "test.name", "user+tag", "u_1", "_lead", "bot", "qa", "st", "z9"],
@@ -24,16 +17,14 @@ _EMAIL_PARTS: list[Tuple[str, str]] = list(
     )
 )
 
-# Додаткові «крайні» адреси (довжина / символи)
 _EXTRA_EMAILS = [
     "a@b.co",
     "long+" + "x" * 40 + "@example.com",
     "юзер@example.com",
     "user@тест.укр",
-    " " + "trim@example.com",  # пробіл на початку — зберігається як є в БД
+    " " + "trim@example.com",
 ]
 
-# Довжини паролів для set_password / check_password
 _PASSWORD_LENGTHS = list(range(0, 35)) + [40, 64, 100, 255]
 
 _LOOSE_EMAIL_RE = re.compile(
@@ -43,10 +34,10 @@ _LOOSE_EMAIL_RE = re.compile(
 
 @pytest.mark.parametrize("local,domain", _EMAIL_PARTS)
 def test_user_email_roundtrip_storage(app, db, local, domain):
-    """Email зберігається та читається з БД; довжина вкладена в обмеження колонок."""
+    """Persist and load user email within column length limits."""
     email = f"{local}@{domain}"
     if len(email) > 120 or len(local) + len(domain) + 1 > 120:
-        pytest.skip("довжина за межами String(120)")
+        pytest.skip("length exceeds String(120)")
     suffix = uuid.uuid4().hex[:6]
     u = User(username=f"em_{suffix}_{local[:8]}", email=email, role="user")
     u.set_password("pw")
@@ -59,7 +50,7 @@ def test_user_email_roundtrip_storage(app, db, local, domain):
 
 @pytest.mark.parametrize("raw", _EXTRA_EMAILS)
 def test_user_extra_email_strings(app, db, raw):
-    """Додаткові рядки email: commit або skip за довжиною username/email."""
+    """Extra email strings persist when within length limits."""
     if len(raw) > 120:
         pytest.skip("email too long")
     suffix = uuid.uuid4().hex[:8]
@@ -86,13 +77,13 @@ _LOOSE_CASES = [
 
 @pytest.mark.parametrize("email,expect_pattern", _LOOSE_CASES)
 def test_loose_email_pattern_examples(email, expect_pattern):
-    """Документована політика «схоже на email» для тестових даних."""
+    """Loose email-shape regex used by tests matches expected pairs."""
     assert bool(_LOOSE_EMAIL_RE.search(email.strip())) == expect_pattern
 
 
 @pytest.mark.parametrize("length", _PASSWORD_LENGTHS)
 def test_user_password_length_roundtrip(app, db, length):
-    """``set_password`` / ``check_password`` для різних довжин."""
+    """set_password and check_password round-trip for various lengths."""
     suffix = uuid.uuid4().hex[:8]
     u = User(username=f"pw_{suffix}", email=f"{suffix}@e.com", role="user")
     raw = "" if length == 0 else ("p" * length)
@@ -105,7 +96,7 @@ def test_user_password_length_roundtrip(app, db, length):
 
 @pytest.mark.parametrize("n", range(20))
 def test_user_repr_contains_username(app, db, n):
-    """``__repr__`` містить username."""
+    """User __repr__ includes username."""
     suffix = uuid.uuid4().hex[:8]
     name = f"repr_{n}_{suffix}"[:64]
     u = User(username=name, email=f"{suffix}{n}@e.com", role="user")
@@ -117,7 +108,7 @@ def test_user_repr_contains_username(app, db, n):
 
 @pytest.mark.parametrize("title_len", [1, 50, 100, 199, 200])
 def test_event_title_boundary(app, db, user, title_len):
-    """Подія з title довжиною до 200 символів зберігається."""
+    """Event title up to 200 characters persists."""
     t = ("T" * title_len)[:200]
     e = Event(
         title=t,
@@ -132,7 +123,7 @@ def test_event_title_boundary(app, db, user, title_len):
 
 @pytest.mark.parametrize("status", ["pending", "approved", "rejected"])
 def test_event_status_values(app, db, user, status):
-    """Дозволені рядкові статуси події зберігаються."""
+    """Event status string values persist."""
     e = Event(
         title="S",
         description="body",
@@ -146,7 +137,7 @@ def test_event_status_values(app, db, user, status):
 
 @pytest.mark.parametrize("nlen", [1, 50, 99, 100])
 def test_company_name_lengths(app, db, nlen):
-    """Назва компанії до 100 символів."""
+    """Company name up to 100 characters persists."""
     name = ("C" * nlen) + uuid.uuid4().hex[:6]
     name = name[:100]
     c = Company(name=name, description=None)
@@ -156,7 +147,7 @@ def test_company_name_lengths(app, db, nlen):
 
 
 def test_duplicate_username_raises(app, db):
-    """Унікальність username."""
+    """Duplicate username raises IntegrityError."""
     suffix = uuid.uuid4().hex[:8]
     a = User(username=f"d_{suffix}", email=f"a_{suffix}@e.com", role="user")
     a.set_password("x")
@@ -171,7 +162,7 @@ def test_duplicate_username_raises(app, db):
 
 
 def test_duplicate_email_raises(app, db):
-    """Унікальність email."""
+    """Duplicate email raises IntegrityError."""
     suffix = uuid.uuid4().hex[:8]
     email = f"same_{suffix}@e.com"
     a = User(username=f"u1_{suffix}", email=email, role="user")
@@ -187,7 +178,7 @@ def test_duplicate_email_raises(app, db):
 
 
 def test_duplicate_company_name_raises(app, db):
-    """Унікальність назви компанії."""
+    """Duplicate company name raises IntegrityError."""
     name = f"Co_{uuid.uuid4().hex[:8]}"[:100]
     a = Company(name=name)
     b = Company(name=name)
@@ -201,7 +192,7 @@ def test_duplicate_company_name_raises(app, db):
 
 @pytest.mark.parametrize("verified", [True, False])
 def test_company_is_verified_flag(app, db, verified):
-    """Прапорець ``is_verified``."""
+    """Company is_verified flag persists."""
     name = f"V_{uuid.uuid4().hex[:10]}"[:100]
     c = Company(name=name, is_verified=verified)
     db.session.add(c)

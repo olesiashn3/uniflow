@@ -1,10 +1,3 @@
-"""
-Патерн Observer: реакція на схвалення адміністратором запиту на створення організації.
-
-Після успішного збереження стану в БД викликається ``notify_organization_request_approved``;
-підписники (наприклад, створення ``Notification``) виконуються окремо від маршруту.
-"""
-
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -14,22 +7,22 @@ from typing import List, Optional
 
 @dataclass(frozen=True)
 class OrganizationApprovedContext:
-    """Контекст доменної події: запит на організацію схвалено."""
+    """Payload when an organization request is approved."""
 
     requester_id: int
     company_name: str
 
 
 class OrganizationApprovalObserver(ABC):
-    """Спостерігач за схваленням запиту на організацію."""
+    """Observer interface for organization-request approval."""
 
     @abstractmethod
     def on_organization_request_approved(self, ctx: OrganizationApprovedContext) -> None:
-        """Викликається після успішного схвалення запиту."""
+        """Handle an approved organization request."""
 
 
 class OrganizationApprovalSubject:
-    """Суб'єкт: тримає список спостерігачів і розсилає їм подію."""
+    """Notifies registered observers."""
 
     def __init__(self) -> None:
         self._observers: List[OrganizationApprovalObserver] = []
@@ -48,7 +41,7 @@ class OrganizationApprovalSubject:
 
 
 class OrganizationApprovedNotificationObserver(OrganizationApprovalObserver):
-    """Створює in-app сповіщення для користувача, який подав запит."""
+    """Creates an in-app notification for the requester."""
 
     def on_organization_request_approved(self, ctx: OrganizationApprovedContext) -> None:
         from app.services.notifications_service import (
@@ -65,7 +58,7 @@ _subject: Optional[OrganizationApprovalSubject] = None
 
 
 def get_organization_approval_subject() -> OrganizationApprovalSubject:
-    """Повертає синглтон суб'єкта з дефолтним підписником на сповіщення."""
+    """Return the process-wide subject instance (lazy init with default observers)."""
     global _subject
     if _subject is None:
         _subject = OrganizationApprovalSubject()
@@ -74,6 +67,6 @@ def get_organization_approval_subject() -> OrganizationApprovalSubject:
 
 
 def notify_organization_request_approved(*, requester_id: int, company_name: str) -> None:
-    """Точка входу для маршрутів після commit: сповістити всіх спостерігачів."""
+    """Notify observers after a successful organization approval commit."""
     ctx = OrganizationApprovedContext(requester_id=requester_id, company_name=company_name)
     get_organization_approval_subject().notify(ctx)

@@ -58,7 +58,6 @@ class EventForm(FlaskForm):
     requirements = TextAreaField('Вимоги', validators=[Optional()])
     deadline = DateField('Дедлайн', validators=[Optional()])
 
-    # Залишаємо URL, але додаємо підказку в placeholder (в HTML)
     link = StringField('Посилання (Реєстрація / Деталі)', validators=[
         Optional(),
         URL(message='Введіть коректне посилання (почніть з http:// або https://)')
@@ -81,8 +80,6 @@ class EventForm(FlaskForm):
 
     category_id = SelectField('Категорія', coerce=int)
 
-    # ДОДАНО: Приховане поле або список для вибору компанії
-    # Якщо юзер має компанію, ми заповнимо цей список у маршруті
     company_id = SelectField('Публікувати від імені', coerce=int, validators=[Optional()])
 
     submit = SubmitField('Опублікувати')

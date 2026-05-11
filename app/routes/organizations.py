@@ -14,12 +14,10 @@ organizations = Blueprint('organizations', __name__)
 @organizations.route('/organizations/request', methods=['GET', 'POST'])
 @login_required
 def request_create():
-    # If user is already a company representative, don't allow duplicate requests.
     if current_user.company_id:
         flash('Ви вже привʼязані до організації. Якщо потрібно змінити дані — напишіть адміністратору.', 'info')
         return redirect(url_for('profile.user_profile', username=current_user.username))
 
-    # If there is already a pending request, block duplicates.
     existing = OrganizationRequest.query.filter_by(requester_id=current_user.id, status='pending').first()
     if existing:
         flash('Ваш запит уже на розгляді. Очікуйте рішення адміністратора.', 'info')

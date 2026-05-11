@@ -1,5 +1,3 @@
-"""Інтеграційні тести роутів подій, підписок, запитань."""
-
 from __future__ import annotations
 
 from app.models import Event, Question

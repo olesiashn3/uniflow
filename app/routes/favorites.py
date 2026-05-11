@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request
 from flask_login import login_required, current_user
 from app.models import Event
-from datetime import date  # Імпорт для роботи з часом
+from datetime import date
 from app.services.favorites_service import get_user_favorites, toggle_favorite
 
 favorites = Blueprint('favorites', __name__)
@@ -12,7 +12,6 @@ favorites = Blueprint('favorites', __name__)
 def index():
     user_favorites = get_user_favorites(current_user.id)
 
-    # Додаємо now=date.today(), щоб Jinja знала, який сьогодні день
     return render_template('favorites/index.html',
                            favorites=user_favorites,
                            now=date.today())
@@ -25,7 +24,6 @@ def toggle(event_id):
     is_favorite = toggle_favorite(current_user.id, event_id)
     message = 'Додано до вибраного!' if is_favorite else 'Видалено з вибраного'
 
-    # Перевірка на AJAX запит (для роботи JS без перезавантаження)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'is_favorite': is_favorite, 'message': message})
 

@@ -97,7 +97,6 @@
             {% endfor %}
             </div>
             <script>
-                // Автоматичне приховування повідомлень через 3 секунди
                 setTimeout(function() {
                     const flashContainer = document.getElementById('flash-container');
                     if (flashContainer) {
@@ -136,7 +135,6 @@
     }
 
     function closeAddPanel(e) {
-        // close only if click on overlay, not inside card
         if (!e) return;
         if (e.target && e.target.id === 'add-panel-overlay') {
             forceCloseAddPanel();

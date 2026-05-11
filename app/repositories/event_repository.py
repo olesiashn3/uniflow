@@ -1,10 +1,3 @@
-"""
-Репозиторії подій: абстракція доступу до даних (принцип DIP / літера D з SOLID).
-
-``SqlAlchemyEventRepository`` використовується в продакшені; ``InMemoryEventRepository`` —
-для ізольованих тестів без БД.
-"""
-
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -19,11 +12,7 @@ from app.strategies.event_sort import get_event_sort_strategy
 
 
 class ListPagination:
-    """
-    Мінімальна імітація ``flask_sqlalchemy.Pagination`` для списків у пам'яті.
-
-    Підтримує атрибути та методи, які використовує шаблон ``events/index.html``.
-    """
+    """In-memory pagination aligned with Flask-SQLAlchemy ``Pagination`` usage in templates."""
 
     def __init__(self, items: List[Any], page: int, per_page: int, total: int) -> None:
         self.items = items
@@ -62,7 +51,7 @@ class ListPagination:
         left_current: int = 2,
         right_current: int = 2,
     ) -> Iterator[Optional[int]]:
-        """Генерує номери сторінок і ``None`` як роздільники «…», за зразком Flask."""
+        """Yield page numbers and ``None`` gap markers (Flask-style)."""
         last = 0
         for num in range(1, self.pages + 1):
             if (
@@ -86,7 +75,7 @@ def _paginate_list(items: List[Any], page: int, per_page: int) -> ListPagination
 
 
 class InMemoryPublicEventsResult:
-    """Результат вибірки in-memory: підтримує ``.paginate()`` як SQLAlchemy ``Query``."""
+    """Holds filtered events; exposes ``paginate()`` like a SQLAlchemy query result."""
 
     def __init__(self, events: List[Any]) -> None:
         self._events = events
@@ -96,7 +85,7 @@ class InMemoryPublicEventsResult:
 
 
 class IEventRepository(ABC):
-    """Інтерфейс репозиторію публічних (каталожних) подій."""
+    """Abstract repository for public (catalog) event queries."""
 
     @abstractmethod
     def build_public_events_query(
@@ -109,16 +98,11 @@ class IEventRepository(ABC):
         feed: str = "all",
         user: Any = None,
     ) -> Any:
-        """
-        Будує вибірку схвалених майбутніх подій із фільтрами.
-
-        Реалізація для SQLAlchemy повертає ``Query`` з ``.paginate()``.
-        In-memory реалізація повертає ``InMemoryPublicEventsResult``.
-        """
+        """Build filtered approved-events query (SQLAlchemy ``Query`` or in-memory wrapper)."""
 
 
 class SqlAlchemyEventRepository(IEventRepository):
-    """Доступ до подій через ORM SQLAlchemy (основний шлях у застосунку)."""
+    """SQLAlchemy-backed public event repository."""
 
     def build_public_events_query(
         self,
@@ -214,12 +198,7 @@ def _in_memory_filter_feed(events: List[Any], feed: str, user: Any) -> List[Any]
 
 
 class InMemoryEventRepository(IEventRepository):
-    """
-    Репозиторій подій у пам'яті (list об'єктів з атрибутами як у ``Event``).
-
-    Логіка фільтрації узгоджена з ``SqlAlchemyEventRepository`` для режиму ``feed='all'``
-    та основних полів; призначений для юніт-тестів.
-    """
+    """In-memory list repository for tests; duck-typed event objects."""
 
     def __init__(self, events: Optional[List[Any]] = None) -> None:
         self._events: List[Any] = list(events or [])

@@ -1,5 +1,3 @@
-"""Інтеграційні тести роутів auth (реєстрація, логін, онбординг, логаут)."""
-
 from __future__ import annotations
 
 import uuid

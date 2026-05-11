@@ -1,5 +1,3 @@
-"""Патерн Observer для розв'язання залежностей між доменними подіями та побічними ефектами."""
-
 from app.observers.organization_approval import (
     OrganizationApprovalObserver,
     OrganizationApprovalSubject,

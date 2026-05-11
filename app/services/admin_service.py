@@ -23,7 +23,6 @@ def get_dashboard_data():
         Event.created_at < (datetime.utcnow() - timedelta(days=7))
     ).count()
 
-    # Trend for the last 30 days (events created per day by status)
     start_date = date.today() - timedelta(days=29)
     start_dt = datetime.combine(start_date, datetime.min.time())
     trend_rows = db.session.query(
@@ -49,7 +48,6 @@ def get_dashboard_data():
         key = d.isoformat()
         trend.append(trend_map.get(key, {'day': key, 'approved': 0, 'pending': 0, 'rejected': 0}))
 
-    # Top categories by approved events
     top_categories_rows = db.session.query(
         Category.name,
         db.func.count(Event.id).label('count')
@@ -65,7 +63,6 @@ def get_dashboard_data():
 
     top_categories = [{'name': row.name, 'count': row.count} for row in top_categories_rows]
 
-    # Top companies by published events
     top_companies_rows = db.session.query(
         Company.name,
         db.func.count(Event.id).label('count')
@@ -111,7 +108,6 @@ def approve_event_edit_request(req: EventEditRequest, decided_by: User):
     if not event:
         return None
 
-    # Apply proposed fields (only if provided)
     if req.title is not None:
         event.title = req.title
     if req.description is not None:

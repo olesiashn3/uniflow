@@ -29,8 +29,6 @@
         animation: fadeInUp 0.55s ease forwards;
     }
 
-    /* moved to global style.css: laconic-badge/title/desc */
-
     .header-actions {
         display: flex;
         align-items: center;
@@ -125,7 +123,6 @@
         animation: fadeInUp 0.55s ease forwards;
     }
 
-    /* Stagger animation without inline styles (keeps template lint-clean) */
     .notifications-list .notification-item:nth-child(1)  { animation-delay: 0.04s; }
     .notifications-list .notification-item:nth-child(2)  { animation-delay: 0.08s; }
     .notifications-list .notification-item:nth-child(3)  { animation-delay: 0.12s; }
@@ -294,7 +291,6 @@
     }
     .org-center .btn:hover { background: #fff; transform: translateY(-1px); }
 
-    /* ===== Motivation mini-carousel (right sidebar) ===== */
     .motivation-panel {
         padding: 0;
         overflow: hidden;
@@ -401,7 +397,6 @@
         border-radius: 6px;
     }
 
-    /* ===== WIDE NEWS STRIP (below inbox) ===== */
     .below-wide {
         margin-top: 18px;
     }
@@ -425,7 +420,6 @@
         padding: 14px 18px 18px 18px;
     }
 
-    /* "Newsletter" look (bigger cards like DOU) */
     .news-wide-grid {
         display: flex;
         flex-direction: column;
@@ -697,7 +691,6 @@
 </div>
 
 <script>
-    // Mini carousel for the notifications sidebar (scoped to this page)
     (function () {
         const root = document.getElementById('motivationPanel');
         if (!root) return;

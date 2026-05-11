@@ -3,7 +3,6 @@
 {% block content %}
 
 <style>
-    /* МІКРОАНІМАЦІЇ ТА СТИЛІ */
     @keyframes fadeInUp {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -22,13 +21,11 @@
     .events-grid .event-card {
         animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         opacity: 0;
-        /* ОНОВЛЕНО: "Дорогий" пружинний перехід */
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        will-change: transform, box-shadow; /* Оптимізація плавності */
+        will-change: transform, box-shadow;
     }
 
     .event-card:hover {
-        /* ОНОВЛЕНО: Легке збільшення + підняття */
         transform: translateY(-8px) scale(1.02);
         box-shadow: 0 24px 48px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(99, 102, 241, 0.06);
         border-color: rgba(99, 102, 241, 0.4);
@@ -44,11 +41,6 @@
     .events-grid .event-card:nth-child(8) { animation-delay: 0.8s; }
     .events-grid .event-card:nth-child(9) { animation-delay: 0.9s; }
 
-    /* Кольори категорій на картках — у глобальному style.css (.badge[data-category]) */
-
-    /* ==========================================
-       ПАГІНАЦІЯ (Сторінки 1, 2, 3...)
-       ========================================== */
     .pagination-container {
         display: flex;
         justify-content: center;
@@ -94,7 +86,6 @@
         padding: 0 4px;
     }
 
-    /* Bento Блок */
     .bento-section {
         margin: 80px auto 60px auto;
         opacity: 0;
@@ -141,7 +132,6 @@
 
     .floating-icon { animation: float 6s ease-in-out infinite; }
 
-    /* ФІНАЛЬНИЙ CTA (Горизонтальний банер) */
     .cta-final-section {
         margin: 60px auto 80px auto;
         padding: 0 20px;
@@ -229,7 +219,6 @@
         .cta-subtitle { margin: 0 auto; }
     }
 
-    /* ЛАКОНІЧНІ ТАБИ */
     .feed-tabs-container {
         display: flex;
         gap: 40px;

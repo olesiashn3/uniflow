@@ -1,5 +1,3 @@
-"""Допоміжні функції для HTTP-інтеграційних тестів (без змін коду застосунку)."""
-
 from __future__ import annotations
 
 import uuid
@@ -10,7 +8,7 @@ from app.models import Category, Company, Event, User
 
 
 def create_onboarded_user(db, *, password: str = "Secret123456") -> Tuple[User, str]:
-    """Користувач з завершеним онбордингом (можна одразу логінити)."""
+    """User with onboarding completed."""
     suffix = uuid.uuid4().hex[:8]
     u = User(
         username=f"tu_{suffix}",
@@ -53,7 +51,7 @@ def first_category_id(db) -> int:
 
 
 def create_published_event(db, author: User, **kwargs) -> Event:
-    """Схвалена подія з майбутнім дедлайном (видима на головній)."""
+    """Approved event with a future deadline (visible on index)."""
     defaults = dict(
         title="Published Integration Event",
         description="Опис події для інтеграційного тесту, довший за 20 символів.",

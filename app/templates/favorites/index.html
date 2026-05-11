@@ -10,9 +10,6 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ==========================================
-       ГОРИЗОНТАЛЬНИЙ ЛАКОНІЧНИЙ ХЕДЕР (Широка смужка)
-       ========================================== */
     .fav-header-container {
         display: flex;
         justify-content: space-between;
@@ -20,15 +17,13 @@
         margin-top: 48px;
         margin-bottom: 40px;
         padding-bottom: 32px;
-        border-bottom: 1px solid var(--border); /* Лінія на всю нову ширину */
+        border-bottom: 1px solid var(--border);
         animation: fadeInUp 0.5s ease forwards;
     }
 
     .fav-text-group {
         text-align: left;
     }
-
-    /* moved to global style.css: laconic-badge/title/desc */
 
     .fav-counter-box {
         background: #ffffff;
@@ -51,7 +46,6 @@
         font-size: 16px;
     }
 
-    /* Легка поява карток як на головній */
     .events-grid .event-card {
         animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         opacity: 0;
@@ -59,7 +53,6 @@
         will-change: transform, box-shadow;
     }
 
-    /* Адаптивність для менших екранів */
     @media (max-width: 768px) {
         .fav-header-container {
             flex-direction: column;

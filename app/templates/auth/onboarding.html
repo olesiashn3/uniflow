@@ -16,7 +16,7 @@
         border: 1px solid var(--border);
         border-radius: 28px;
         padding: 50px 40px;
-        max-width: 680px; /* Зробили ширше, щоб влізла велика хмара тегів */
+        max-width: 680px;
         width: 100%;
         box-shadow: 0 12px 32px rgba(0,0,0,0.03);
         animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -27,7 +27,6 @@
         margin-bottom: 36px;
     }
 
-    /* Іконка з легким градієнтом, але не громіздка */
     .onboarding-icon-wrap {
         width: 64px;
         height: 64px;
@@ -62,7 +61,6 @@
         margin: 0 auto;
     }
 
-    /* ХМАРА ТЕГІВ */
     .interests-grid {
         display: flex;
         flex-wrap: wrap;
@@ -75,7 +73,6 @@
         display: none;
     }
 
-    /* Спокійний стан: чистий, лаконічний */
     .interest-chip {
         display: inline-flex;
         align-items: center;
@@ -93,14 +90,12 @@
         user-select: none;
     }
 
-    /* Ховер: ледь помітне підсвічування */
     .interest-chip:hover {
         border-color: rgba(99, 102, 241, 0.4);
         background-color: rgba(99, 102, 241, 0.02);
         color: var(--text);
     }
 
-    /* АКТИВНИЙ СТАН: Ось він, красивий соковитий градієнт! */
     .hidden-checkbox:checked + .interest-chip {
         background: linear-gradient(135deg, var(--primary), #d946ef);
         border-color: transparent;
@@ -114,7 +109,6 @@
         font-size: 16px;
     }
 
-    /* Галочка з'являється плавно */
     .hidden-checkbox:checked + .interest-chip .chip-icon {
         display: inline-block;
         animation: scaleIn 0.3s ease forwards;
@@ -125,7 +119,6 @@
         to { transform: scale(1); }
     }
 
-    /* Кнопки */
     .onboarding-actions {
         display: flex;
         flex-direction: column;

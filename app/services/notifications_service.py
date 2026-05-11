@@ -55,11 +55,7 @@ def create_rejection_notification(event):
 
 
 def create_organization_request_approved_notification(user_id: int, company_name: str) -> Notification:
-    """
-    Сповіщення заявника про схвалення запиту на реєстрацію організації.
-
-    Викликається з Observer після схвалення адміністратором (див. ``app.observers``).
-    """
+    """Persist a notification when an organization request is approved."""
     return create_notification(
         user_id=user_id,
         notification_type='organization_request_approved',

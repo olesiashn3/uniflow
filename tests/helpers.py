@@ -1,5 +1,3 @@
-"""Допоміжні функції та тестові дублікати користувачів (без змін коду застосунку)."""
-
 from __future__ import annotations
 
 from datetime import date, datetime

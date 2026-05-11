@@ -1,5 +1,3 @@
-"""Тести in-memory репозиторію подій, пагінації та комбінацій фільтрів."""
-
 from __future__ import annotations
 
 import itertools
@@ -12,7 +10,6 @@ import pytest
 from app.repositories.event_repository import InMemoryEventRepository, InMemoryPublicEventsResult
 from tests.helpers import DummyUserSubscriptions, make_event_stub
 
-# 4*2*3*2*3 = 144 комбінацій
 _FILTER_COMBOS: List[tuple] = list(
     itertools.product(
         ["new", "deadline", "", "unknown"],
@@ -23,7 +20,6 @@ _FILTER_COMBOS: List[tuple] = list(
     )
 )
 
-# 5*4*5 = 100
 _PAGINATION_COMBOS: List[tuple] = list(
     itertools.product(
         [1, 2, 3, 4, 5],
@@ -32,7 +28,6 @@ _PAGINATION_COMBOS: List[tuple] = list(
     )
 )
 
-# 6*3*3 = 54
 _PUBLIC_RESULT_PAGINATION: List[tuple] = list(
     itertools.product(
         [0, 1, 5, 10, 20, 35],
@@ -65,7 +60,7 @@ def _seed_events_for_filters(today: date, n: int = 12) -> List[Any]:
 
 @pytest.mark.parametrize("sort,search,category,fmt,city", _FILTER_COMBOS)
 def test_in_memory_repository_filter_matrix(sort, search, category, fmt, city):
-    """Комбінації сортування та фільтрів не падають і повертають валідну пагінацію."""
+    """Filter and sort combinations return valid pagination."""
     today = date.today()
     repo = InMemoryEventRepository(_seed_events_for_filters(today))
     res = repo.build_public_events_query(
@@ -85,7 +80,7 @@ def test_in_memory_repository_filter_matrix(sort, search, category, fmt, city):
 
 @pytest.mark.parametrize("page,per_page,total_events", _PAGINATION_COMBOS)
 def test_in_memory_pagination_sizes(page, per_page, total_events):
-    """Розмір сторінки та кількість записів погоджені з ``ListPagination``."""
+    """Pagination slice sizes match ListPagination rules."""
     today = date.today()
     events = [
         make_event_stub(
@@ -112,7 +107,7 @@ def test_in_memory_pagination_sizes(page, per_page, total_events):
 
 @pytest.mark.parametrize("total,page,per_page", _PUBLIC_RESULT_PAGINATION)
 def test_in_memory_public_result_paginate(total, page, per_page):
-    """``InMemoryPublicEventsResult.paginate`` для довільних total/page/per_page."""
+    """InMemoryPublicEventsResult.paginate respects total and per_page."""
     today = date.today()
     events = [
         make_event_stub(
@@ -135,7 +130,7 @@ def test_in_memory_public_result_paginate(total, page, per_page):
     list(itertools.product([1, 2], [1, 2], [1, 2], [1, 2])),
 )
 def test_in_memory_result_iter_pages_smoke(left_edge, right_edge, left_current, right_current):
-    """``iter_pages`` не кидає винятків."""
+    """iter_pages yields ints or None without raising."""
     today = date.today()
     events = [
         make_event_stub(eid=i, title=f"e{i}", deadline=today + timedelta(days=1), status="approved")
@@ -148,7 +143,7 @@ def test_in_memory_result_iter_pages_smoke(left_edge, right_edge, left_current, 
 
 
 def test_in_memory_empty_repository():
-    """Порожній список подій дає нульову вибірку."""
+    """Empty backing list yields zero results."""
     repo = InMemoryEventRepository([])
     res = repo.build_public_events_query()
     p = res.paginate(1, 9)
@@ -158,7 +153,7 @@ def test_in_memory_empty_repository():
 
 @pytest.mark.parametrize("status", ["pending", "rejected", "draft", "approved"])
 def test_only_approved_visible(status):
-    """Лише ``approved`` потрапляє до публічної in-memory вибірки."""
+    """Only approved events appear in public in-memory query."""
     today = date.today()
     ev = make_event_stub(status=status, deadline=today + timedelta(days=1))
     repo = InMemoryEventRepository([ev])
@@ -171,7 +166,7 @@ def test_only_approved_visible(status):
 
 @pytest.mark.parametrize("delta", [-1, 0, 1, 7, 30, 365])
 def test_deadline_cutoff_today(delta):
-    """Події з дедлайном у минулому відсікаються."""
+    """Past deadlines are excluded from public query."""
     today = date.today()
     ev = make_event_stub(
         eid=1,
@@ -187,7 +182,7 @@ def test_deadline_cutoff_today(delta):
 
 
 def test_foryou_feed_no_matches(dummy_user_foryou_empty):
-    """Якщо немає інтересів і обраного — стрічка foryou порожня."""
+    """foryou feed is empty when interests and favorites are empty."""
     today = date.today()
     ev = make_event_stub(
         deadline=today + timedelta(days=1),
@@ -200,7 +195,7 @@ def test_foryou_feed_no_matches(dummy_user_foryou_empty):
 
 
 def test_subscriptions_feed_no_subscriptions(dummy_user_subscriptions_empty):
-    """Без підписок — subscriptions порожня."""
+    """subscriptions feed is empty without follows or company subscriptions."""
     today = date.today()
     ev = make_event_stub(deadline=today + timedelta(days=1), status="approved", company_id=1)
     repo = InMemoryEventRepository([ev])
@@ -212,7 +207,7 @@ def test_subscriptions_feed_no_subscriptions(dummy_user_subscriptions_empty):
 
 
 def test_subscriptions_feed_matches_company():
-    """Підписка на компанію показує її події."""
+    """subscriptions feed includes events for subscribed company."""
     today = date.today()
     c = type("C", (), {"id": 5})()
     user = DummyUserSubscriptions([c], [])
@@ -227,7 +222,7 @@ def test_subscriptions_feed_matches_company():
 
 
 def test_subscriptions_feed_matches_author():
-    """Підписка на автора показує його події."""
+    """subscriptions feed includes events for followed authors."""
     today = date.today()
     u = type("U", (), {"id": 42})()
     user = DummyUserSubscriptions([], [u])
@@ -244,7 +239,7 @@ def test_subscriptions_feed_matches_author():
 
 @pytest.mark.parametrize("unicode_title", ["Подія 🎓", "日本語", "Café", "Plain"])
 def test_search_unicode_and_plain_title(unicode_title):
-    """Пошук за підрядком і Unicode не ламає репозиторій."""
+    """Title search handles Unicode substrings."""
     today = date.today()
     ev = make_event_stub(title=unicode_title, deadline=today + timedelta(days=1), status="approved")
     repo = InMemoryEventRepository([ev])
@@ -255,7 +250,7 @@ def test_search_unicode_and_plain_title(unicode_title):
 
 @pytest.mark.parametrize("sort", ["new", "deadline"])
 def test_sort_ordering_len(sort):
-    """Дві схвалені події повертаються обидві при валідних дедлайнах."""
+    """Two approved events with valid deadlines both appear."""
     today = date.today()
     d = today + timedelta(days=5)
     events = [
@@ -268,6 +263,6 @@ def test_sort_ordering_len(sort):
 
 
 def test_fixture_repo_has_mixed_status(in_memory_event_repo):
-    """Фікстура містить pending / past — публічна вибірка не порожня лише для валідних approved."""
+    """Fixture repo yields at least one approved public event."""
     p = in_memory_event_repo.build_public_events_query().paginate(1, 9)
     assert p.total >= 1

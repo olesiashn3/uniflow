@@ -1,5 +1,3 @@
-"""Тести патерну Strategy для сортування подій (in-memory гілка)."""
-
 from __future__ import annotations
 
 import itertools
@@ -38,7 +36,7 @@ _SORT_DATE_PARAMS: List[Tuple[date, int, int]] = list(
 
 @pytest.mark.parametrize("sort_key", _SORT_FACTORY_KEYS)
 def test_get_event_sort_strategy_returns_strategy(sort_key: str):
-    """Фабрика завжди повертає реалізацію ``EventSortStrategy``."""
+    """get_event_sort_strategy always returns an EventSortStrategy instance."""
     strat = get_event_sort_strategy(sort_key)
     assert isinstance(strat, EventSortStrategy)
 
@@ -53,7 +51,7 @@ def test_get_event_sort_strategy_returns_strategy(sort_key: str):
     ],
 )
 def test_factory_maps_known_and_unknown(sort_key, expect_newest):
-    """``deadline`` → SortByDeadline; невідомі ключі → SortByNewest."""
+    """deadline maps to SortByDeadline; unknown keys map to SortByNewest."""
     strat = get_event_sort_strategy(sort_key)
     if expect_newest:
         assert isinstance(strat, SortByNewest)
@@ -63,7 +61,7 @@ def test_factory_maps_known_and_unknown(sort_key, expect_newest):
 
 @pytest.mark.parametrize("base,off,var", _SORT_DATE_PARAMS)
 def test_sort_by_newest_in_memory_order(base, off, var):
-    """SortByNewest: порядок за ``created_at`` спадно."""
+    """SortByNewest orders by created_at descending."""
     e1 = make_event_stub(
         eid=1,
         title="a",
@@ -85,7 +83,7 @@ def test_sort_by_newest_in_memory_order(base, off, var):
 
 @pytest.mark.parametrize("base,off,var", _SORT_DATE_PARAMS)
 def test_sort_by_deadline_in_memory_filters_none(base, off, var):
-    """SortByDeadline: без дедлайну не потрапляють; порядок за датою зростання."""
+    """SortByDeadline drops missing deadlines and sorts ascending."""
     e0 = make_event_stub(
         eid=0,
         title="none",
@@ -116,7 +114,7 @@ def test_sort_by_deadline_in_memory_filters_none(base, off, var):
 
 @pytest.mark.parametrize("status", ["approved", "pending", "rejected", "draft", "hold", "archived"])
 def test_strategies_ignore_status_field(status):
-    """Стратегії не залежать від ``status`` у in-memory."""
+    """Strategies do not filter by status in in-memory mode."""
     today = date.today()
     e = make_event_stub(
         status=status,
@@ -131,7 +129,7 @@ def test_strategies_ignore_status_field(status):
 
 @pytest.mark.parametrize("n", range(15))
 def test_newest_stable_with_identical_timestamps(n):
-    """Однаковий ``created_at`` — усі елементи залишаються."""
+    """Identical created_at keeps five items in output."""
     ts = datetime(2024, 3, 1, 12, 0, 0)
     today = date.today()
     events = [
@@ -144,7 +142,7 @@ def test_newest_stable_with_identical_timestamps(n):
 
 @pytest.mark.parametrize("n", range(15))
 def test_deadline_stable_equal_deadlines(n):
-    """Однаковий дедлайн — усі елементи з дедлайном у результаті."""
+    """Equal deadlines keep four items with deadlines in output."""
     today = date.today()
     ts = datetime(2024, 2, 1)
     events = [

@@ -205,7 +205,6 @@ def approve_org_request(request_id):
         flash('Цей запит вже оброблено.', 'info')
         return redirect(url_for('admin.org_requests', status=req.status))
 
-    # Create a company and bind requester as representative.
     company = create_company_record(
         name=req.company_name,
         description=None,
