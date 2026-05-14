@@ -1,4 +1,4 @@
-# UniFlow - Co-working Space Management System
+# UniFlow - Student Opportunities Platform
 
 [![CI Pipeline](https://github.com/olesiashn3/uniflow/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/olesiashn3/uniflow/actions/workflows/ci-pipeline.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/quality_gate?project=olesiashn3_uniflow)](https://sonarcloud.io/summary/new_code?id=olesiashn3_uniflow)
