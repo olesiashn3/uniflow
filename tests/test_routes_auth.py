@@ -146,6 +146,30 @@ def test_login_with_next_query_redirects(client, app, db):
     assert "subscriptions" in loc or r.status_code == 302
 
 
+def test_login_with_external_next_redirects_to_index(client, app, db):
+    u, pw = create_onboarded_user(db)
+    r = client.post(
+        "/auth/login?next=https://evil.example/phish",
+        data={"email": u.email, "password": pw, "submit": "1"},
+        follow_redirects=False,
+    )
+    assert r.status_code in (302, 303)
+    loc = r.headers.get("Location", "")
+    assert "evil.example" not in loc
+
+
+def test_login_with_protocol_relative_next_rejected(client, app, db):
+    u, pw = create_onboarded_user(db)
+    r = client.post(
+        "/auth/login?next=//evil.example/path",
+        data={"email": u.email, "password": pw, "submit": "1"},
+        follow_redirects=False,
+    )
+    assert r.status_code in (302, 303)
+    loc = r.headers.get("Location", "")
+    assert "evil.example" not in loc
+
+
 def test_login_redirects_onboarding_when_not_done(client, app, db):
     u, pw = create_onboarded_user(db)
     u.onboarding_done = False
