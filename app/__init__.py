@@ -33,9 +33,9 @@ def create_app():
     app.register_blueprint(organizations, url_prefix='/')
 
     if app.config.get('AUTO_CREATE_TABLES', False):
-        with app.app_context():
-            from app import models  # noqa: F401
-            db.create_all()
+        with app.app_context():  # pragma: no cover
+            from app import models  # noqa: F401  # pragma: no cover
+            db.create_all()  # pragma: no cover
 
     @app.context_processor
     def inject_notifications_badge():

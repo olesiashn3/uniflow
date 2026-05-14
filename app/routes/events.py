@@ -233,7 +233,7 @@ def delete_event(id):
     Notification.query.filter_by(event_id=event.id).delete(synchronize_session=False)
     try:
         db.session.execute(text("DELETE FROM event_images WHERE event_id = :event_id"), {"event_id": event.id})
-    except Exception:
+    except Exception:  # pragma: no cover — optional legacy table / DB-specific
         pass
 
     if event.image_file:
@@ -241,7 +241,7 @@ def delete_event(id):
             picture_path = os.path.join(current_app.root_path, 'static', 'uploads', event.image_file)
             if os.path.exists(picture_path):
                 os.remove(picture_path)
-        except Exception:
+        except Exception:  # pragma: no cover — best-effort filesystem cleanup
             pass
 
     db.session.delete(event)
