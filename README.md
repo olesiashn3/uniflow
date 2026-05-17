@@ -43,7 +43,19 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Configure your environment (e.g. `DATABASE_URL`, secrets) via `.env` as required for your deployment. For local exploration, follow your team’s `.env.example` or deployment notes if present.
+Configure your environment (e.g. `DATABASE_URL`, secrets) via `.env` as required for your deployment. Copy `.env.example` to `.env` and adjust values if needed.
+
+### Optional: Docker
+
+Docker is **additive** — CI, `pytest`, and `python run.py` work the same as before.
+
+```bash
+docker compose up --build
+```
+
+Open [http://localhost:5000](http://localhost:5000). MySQL is exposed on host port **3307** (container `db:3306`). Uploaded images persist in the `uploads_data` volume.
+
+Stop: `docker compose down` (add `-v` to remove database/upload volumes).
 
 ## Testing
 

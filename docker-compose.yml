@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uniflow_db
+      MYSQL_USER: uniflow
+      MYSQL_PASSWORD: uniflow
+    ports:
+      # 3307 on the host avoids clashing with a local MySQL on 3306
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: docker-dev-secret-change-me
+      DATABASE_URL: mysql+pymysql://uniflow:uniflow@db:3306/uniflow_db
+      AUTO_CREATE_TABLES: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/app/static/uploads
+
+volumes:
+  mysql_data:
+  uploads_data:

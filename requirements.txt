@@ -5,6 +5,7 @@ Flask-WTF
 Flask-Migrate
 python-dotenv
 PyMySQL
+cryptography
 Pillow
 pytest
 pytest-cov
