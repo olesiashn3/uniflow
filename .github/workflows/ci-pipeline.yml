@@ -13,6 +13,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   build-test-analyze:
     runs-on: ubuntu-latest
@@ -37,6 +42,12 @@ jobs:
       - name: Run tests with coverage
         run: |
           python -m pytest --cov=app --cov-report=xml --cov-report=html --junitxml=junit.xml
+
+      - name: Publish test report
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: junit.xml
 
       - name: Fix coverage.xml paths for SonarCloud
         run: |
