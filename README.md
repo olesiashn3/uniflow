@@ -30,7 +30,7 @@ UniFlow is a web platform for coordinating spaces, opportunities, and participan
 - Automated tests live in **`tests/`**.
 - UML (PlantUML) and requirements notes: **`docs/`** (e.g. `docs/diagrams.puml`, `docs/project_analysis.md`, `docs/testing.md`).
 - CI workflow: **`.github/workflows/ci-pipeline.yml`**; SonarCloud config: **`sonar-project.properties`**.
-- AI-oriented rules: **`.cursorrules`**, **`.cursor/rules/architecture.md`**, **`.cursor/rules/testing_strategy.md`** (mirrored for the checklist as **`docs/testing.md`**).
+
 
 ## How to Run
 
